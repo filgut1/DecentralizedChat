@@ -14,7 +14,6 @@ export default function Login({onIdSubmit}) {
     function createNewId(e){
         const newId = v4()
         idRef.current.value= newId
-        onIdSubmit(newId)
     }
 
     return (
