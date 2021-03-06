@@ -1,14 +1,17 @@
 import React, {useState} from 'react';
+import Main from './Main'
 import Login from './Login'
 
-function App() {
-  const[id, setId] = useState()
+const App = () => {
+  const[id, setId] = useState();
 
+  if(!id) {
+    return <Login onIdSubmit={setId} />
+  }
   return (
-    <>
-      {id}
-      <Login onIdSubmit={setId}/>
-    </>
+    <div className="App">
+      <Main userId={id}/>
+    </div>
   );
 }
 
