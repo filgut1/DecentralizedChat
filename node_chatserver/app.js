@@ -3,14 +3,9 @@ const httpDB = require('http').createServer().listen(3001);
 const io = require('socket.io')(http);
 const Gun = require('gun');
 
-const gunDB = Gun({web: httpDB, peers: ['http://192.168.0.16:3001/gun'] });
+const gunDB = Gun({web: httpDB});
 
-const users = gunDB.get('users');
-users.once(res => {
-    console.log(res);
-});
-
-io.on('connection', (socket) => {
+/* io.on('connection', (socket) => {
 
     gunDB.get('users')
         .get(socket.handshake.query['user-id'])
@@ -30,4 +25,4 @@ io.on('connection', (socket) => {
 
 http.listen(3000, () => {
     console.log('listening on *:3000');
-});
+});*/
