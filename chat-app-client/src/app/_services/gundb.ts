@@ -6,8 +6,8 @@ require('gun/sea');
 
 @Injectable({ providedIn: 'root' })
 export class GunDB {
-    private gun:any
-    private gundbUser:any
+    readonly gun:any
+    readonly gundbUser:any
     constructor() {
         this.gun = Gun('http://127.0.0.1:3001/gun');
         this.gundbUser = this.gun.user();
@@ -15,12 +15,12 @@ export class GunDB {
 
     authenticate(username:String, password:String) {
         return new Promise((resolve, reject) => {
-            this.gundbUser.auth(username, password, ack => {
+            this.gundbUser.auth(username, password, ack => {                
                 if (ack.err) {
                     reject(ack.err);
                 } else {
                     this.gundbUser.get('profile').once((data:User) => {
-                        resolve(data)
+                        resolve(data);
                     });
                 }
             });
@@ -34,8 +34,10 @@ export class GunDB {
                     reject(ack.err);
                 } else {
                     this.gundbUser.auth(user.username, user.password, ack => { 
-                        this.gundbUser.get('profile').put(user, () => {
-                            resolve(user)
+                        this.gun.get('someKey').put({data: 'someNewVal'});
+                        const { username } = user; // Don't store the password!
+                        this.gundbUser.get('profile').put({username}, () => {
+                            resolve(user);
                         });
                     });
                 }
@@ -49,5 +51,9 @@ export class GunDB {
                 resolve(data);
             });
         });
+    }
+
+    logout() {
+        this.gundbUser.leave();
     }
 }

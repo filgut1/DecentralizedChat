@@ -1,2 +1,2 @@
 ﻿export * from './auth.guard';
-export * from './gundb';
+export * from './gun.helper';

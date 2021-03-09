@@ -1,12 +1,11 @@
 ﻿import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { environment } from '@environments/environment';
 import { User } from '@app/_models';
-import { GunDB } from '@app/_helpers';
+import { GunDB } from '@app/_services';
 
 @Injectable({ providedIn: 'root' })
 export class AccountService {
@@ -37,6 +36,7 @@ export class AccountService {
         // remove user from local storage and set current user to null
         localStorage.removeItem('user');
         this.userSubject.next(null);
+        this.gunDB.logout();
         this.router.navigate(['/account/login']);
     }
 
