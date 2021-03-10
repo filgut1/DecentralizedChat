@@ -14,12 +14,6 @@ export class AppComponent {
         private db: GunDB
     ) {
         this.accountService.user.subscribe(x => this.user = x);
-
-        const profile = this.db.gun.get('someKey');
-        const profile$ = on$(profile);
-
-        profile$.subscribe(v => console.log('asdf', v));
-
     }
 
     logout() {

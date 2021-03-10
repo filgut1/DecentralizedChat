@@ -14,7 +14,7 @@ export function on$(node, cleanup = true): Observable<any> {
                     // modifying data directly does not seem to work...
                     handler(cleanup ? pick(data, (v, k, o) => v !== null && k !== '_') : data);
                 }
-            });
+            }, {change: true});
             return signal;
         },
         (handler, signal) => { signal.stop = true; }

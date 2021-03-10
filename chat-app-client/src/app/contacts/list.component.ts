@@ -2,14 +2,20 @@
 import { first } from 'rxjs/operators';
 
 import { AccountService } from '@app/_services';
+import { GunDB } from '@app/_services';
+import { on$ } from '@app/_helpers';
 
 @Component({ templateUrl: 'list.component.html' })
 export class ListComponent implements OnInit {
-    users = null;
+    contacts = null;
 
-    constructor(private accountService: AccountService) {}
+    constructor(
+        private accountService: AccountService,
+        private db: GunDB
+    ) {}
 
     ngOnInit() {
+
     }
 
     deleteUser(id: string) {

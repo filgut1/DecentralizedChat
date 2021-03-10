@@ -16,12 +16,12 @@ export class LoginComponent implements OnInit {
         private route: ActivatedRoute,
         private router: Router,
         private accountService: AccountService,
-        private alertService: AlertService
+        private alertService: AlertService,
     ) { }
 
     ngOnInit() {
         this.form = this.formBuilder.group({
-            username: ['', Validators.required],
+            alias: ['', Validators.required],
             password: ['', Validators.required]
         });
     }
@@ -41,7 +41,7 @@ export class LoginComponent implements OnInit {
         }
 
         this.loading = true;
-        this.accountService.login(this.f.username.value, this.f.password.value)
+        this.accountService.login(this.f.alias.value, this.f.password.value)
             .then(user => {
                 // get return url from query parameters or default to home page
                 const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';

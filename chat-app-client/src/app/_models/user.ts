@@ -1,4 +1,6 @@
 ﻿export class User {
-    username: string;
+    epub: string;
+    pub: string;
+    alias: string;
     password: string;
 }

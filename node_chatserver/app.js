@@ -14,7 +14,7 @@ Gun.on('opt', function (ctx) {
         // restrict put
         to.next(msg)
     });
-  });
+});
 
 const gunDB = Gun({web: httpDB});
 

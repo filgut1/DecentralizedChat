@@ -1,6 +1,21 @@
 ﻿<div class="p-4">
     <div class="container">
-        <h1>Hi {{user.username}}!</h1>
+        <h1>Hi {{user.alias}}!</h1>
         <p>You're logged in with Angular 10!!</p>
+        <span>Your e public key is</span>
+        <p>{{user.epub}}</p>
     </div>
 </div>
+
+
+<label for="username">Public Key</label>
+<input type="text" [(ngModel)]="epub" class="form-control" />
+
+<label for="username">Message</label>
+<input type="textarea" [(ngModel)]="message" class="form-control" />
+
+
+<button class="btn btn-primary" 
+    (click)="sendMessage()">
+    Send Message
+</button>
