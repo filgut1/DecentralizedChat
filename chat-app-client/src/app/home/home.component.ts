@@ -11,6 +11,7 @@ export class HomeComponent implements OnInit {
     user: User;
     public epub;
     public message;
+    public alias;
 
     constructor(
         private accountService: AccountService,
@@ -20,15 +21,14 @@ export class HomeComponent implements OnInit {
     }
 
     ngOnInit() {
-
-        const myConvos = this.db.gun
+        // Subscribe to my received messages table
+        const receivedMessages = this.db.gun
             .get('convos')
+            .get('to')
             .get(this.db.gunUser.is.epub)
             .get('messages');
-
-        const myConvos$ = on$(myConvos);
-
-        myConvos$.subscribe(this.handleNewMessage.bind(this));
+        const receivedMessages$ = on$(receivedMessages, true, {change: true});
+        receivedMessages$.subscribe(this.handleNewMessage.bind(this));
     }
 
     handleNewMessage(data) {
@@ -40,6 +40,6 @@ export class HomeComponent implements OnInit {
     }
 
     sendMessage() {
-        this.db.sendMessage(this.epub, this.message);
+        this.db.sendMessage(this.epub, this.alias, this.message);
     }
 }

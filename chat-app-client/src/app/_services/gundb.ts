@@ -62,15 +62,26 @@ export class GunDB {
         });
     }
 
-    async sendMessage(epub, message) {
+    async sendMessage(epub, alias, message) {
         if (this.gunUser.is) {
             const secret = await this.sea.secret(epub, this.gunUser._.sea);
             const enc = await this.sea.encrypt(message, secret);
-            this.gunUser.get
+            const ts = (new Date()).getTime();
             this.gun.get('convos')
+                .get('from')
+                .get(this.gunUser.is.epub)
+                .get('messages')
+                .get(ts)
+                .put({
+                    to: alias,
+                    epub: epub,
+                    message: enc
+                });
+            this.gun.get('convos')
+                .get('to')
                 .get(epub)
                 .get('messages')
-                .get((new Date()).getTime())
+                .get(ts)
                 .put({
                     from: this.gunUser.is.alias,
                     epub: this.gunUser.is.epub,

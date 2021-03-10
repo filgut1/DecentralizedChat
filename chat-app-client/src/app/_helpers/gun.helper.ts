@@ -1,7 +1,7 @@
 import { Observable, fromEventPattern  } from 'rxjs';
 import { pick }  from 'underscore/underscore-esm';
 
-export function on$(node, cleanup = true): Observable<any> {
+export function on$(node, cleanup = true, opts): Observable<any> {
     return fromEventPattern(
         handler => {
             // there is no way to off() an on() until at least one value is trigerred
@@ -14,7 +14,7 @@ export function on$(node, cleanup = true): Observable<any> {
                     // modifying data directly does not seem to work...
                     handler(cleanup ? pick(data, (v, k, o) => v !== null && k !== '_') : data);
                 }
-            }, {change: true});
+            }, opts);
             return signal;
         },
         (handler, signal) => { signal.stop = true; }
