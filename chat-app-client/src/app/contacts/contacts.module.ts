@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
 import { ContactsRoutingModule } from './contacts-routing.module';
@@ -11,6 +11,7 @@ import { AddEditComponent } from './add-edit.component';
     imports: [
         CommonModule,
         ReactiveFormsModule,
+        FormsModule,
         ContactsRoutingModule
     ],
     declarations: [

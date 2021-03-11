@@ -15,12 +15,13 @@ export class GunDB {
         this.gun = Gun('http://127.0.0.1:3001/gun');
         this.sea = Gun.SEA;
         this.gunUser = this.gun.user();
+        this.gunUser.recall({sessionStorage: true});
     }
 
     authenticate(username:String, password:String): Promise<any> {
         return new Promise((resolve, reject) => {
             this.gunUser.auth(username, password, ack => {                
-                if (ack.err) {
+                if (ack.err && !this.gunUser.is) {
                     reject(ack.err);
                 } else {
                     resolve(this.gunUser.is);
@@ -39,7 +40,7 @@ export class GunDB {
                         const { alias } = user; // Don't store the password!
                         this.gun.get('users')
                             .get(alias)
-                            .put({pub: ack.sea.pub, epub: ack.sea.epub});
+                            .put({epub: ack.sea.epub});
 
                         resolve(this.gunUser.is);
                     });
@@ -52,6 +53,14 @@ export class GunDB {
         if (this.gunUser.is) {
             this.gunUser.get('contacts').get(alias).put({epub});
         }
+    }
+
+    getAllContacts(): Promise<any> {
+        return new Promise(r => {
+            this.gunUser.get('contacts').once().map(d => {
+                r(d);
+            });
+        });
     }
 
     getCurrentUserProfile(): Promise<any> {
@@ -88,6 +97,28 @@ export class GunDB {
                     message: enc
                 });
         }
+    }
+
+    onAuth$(): Observable<any> {
+        return new Observable(o => this.gun.on('auth', ack => {
+            o.next(ack);
+            o.complete();
+        }));
+    }
+
+    onAuthPromise(): Promise<any> {
+        return new Promise(resolve => {
+            this.gun.on('auth', ack => {
+                if (!ack.err) {
+                    localStorage.setItem('user', JSON.stringify({
+                        alias: ack.put.alias,
+                        epub: ack.sea.epub,
+                        pub: ack.sea.pub
+                    }));
+                    resolve(true);
+                }
+            });
+        });
     }
 
     logout() {

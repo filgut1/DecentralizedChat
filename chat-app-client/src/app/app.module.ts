@@ -7,18 +7,22 @@ import { GunDB } from './_services';
 import { AppComponent } from './app.component';
 import { AlertComponent } from './_components';
 import { HomeComponent } from './home';
+import { ChatsComponent } from './chats/chats.component';
+import { ConversationComponent } from './conversation/conversation.component';
 
 @NgModule({
     imports: [
         BrowserModule,
         ReactiveFormsModule,
         FormsModule,
-        AppRoutingModule
+        AppRoutingModule,
     ],
     declarations: [
         AppComponent,
         AlertComponent,
-        HomeComponent
+        HomeComponent,
+        ChatsComponent ,
+        ConversationComponent,   
     ],
     providers: [
         GunDB

@@ -1,6 +1,7 @@
 ﻿import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { GunDB } from '@app/_services';
 import { first } from 'rxjs/operators';
 
 import { AccountService, AlertService } from '@app/_services';
@@ -18,22 +19,15 @@ export class AddEditComponent implements OnInit {
         private route: ActivatedRoute,
         private router: Router,
         private accountService: AccountService,
-        private alertService: AlertService
-    ) {}
+        private alertService: AlertService,
+        private db: GunDB
+    ) { }
 
     ngOnInit() {
-        this.id = this.route.snapshot.params['id'];
         this.isAddMode = !this.id;
-        
-        // password not required in edit mode
-        const passwordValidators = [Validators.minLength(6)];
-        if (this.isAddMode) {
-            passwordValidators.push(Validators.required);
-        }
 
         this.form = this.formBuilder.group({
-            alias: ['', Validators.required],
-            password: ['', passwordValidators]
+            alias: ['', Validators.required]
         });
 
         if (!this.isAddMode) {
@@ -56,25 +50,15 @@ export class AddEditComponent implements OnInit {
             return;
         }
 
-        this.loading = true;
-        if (this.isAddMode) {
-            this.createUser();
-        } else {
-            this.updateUser();
-        }
-    }
+        this.db.gun.get('users').get(this.f.alias.value).once(d => {
+            if (!d) {
+                this.alertService.error('User not found');
+            } else {
+                this.db.addContact(this.f.alias.value, d.epub);
+                this.router.navigate(['../../'], { relativeTo: this.route });
+            }
 
-    private createUser() {
-        this.accountService.register(this.form.value).then(() => {
-                this.alertService.success('User added successfully', { keepAfterRouteChange: true });
-                this.router.navigate(['../'], { relativeTo: this.route });
-            }).catch(err => {
-                this.alertService.error(err);
-                this.loading = false;
-            });
-    }
-
-    private updateUser() {
-     
+            this.loading = false;
+        });
     }
 }

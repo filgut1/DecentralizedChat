@@ -4,7 +4,6 @@ import { Router, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from
 import { AccountService } from '@app/_services';
 import { GunDB } from '@app/_services';
 
-
 @Injectable({ providedIn: 'root' })
 export class AuthGuard implements CanActivate {
     constructor(
@@ -14,7 +13,7 @@ export class AuthGuard implements CanActivate {
     ) {}
 
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
-        const user = this.db.gunUser.is && this.accountService.userValue;
+        const user = this.accountService.userValue;
         if (user) {
             // authorised so return true
             return true;

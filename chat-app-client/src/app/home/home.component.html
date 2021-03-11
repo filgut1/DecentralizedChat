@@ -7,15 +7,19 @@
     </div>
 </div>
 
+<div *ngIf="!loading" class="flex-container">
+    <app-chats></app-chats>
 
+    <app-conversation></app-conversation>
+</div>
+
+<!--
 <label for="username">Public Key</label>
 <input type="text" [(ngModel)]="epub" class="form-control" />
-
 <label for="username">Message</label>
 <input type="textarea" [(ngModel)]="message" class="form-control" />
-
-
 <button class="btn btn-primary" 
     (click)="sendMessage()">
     Send Message
 </button>
+-->
