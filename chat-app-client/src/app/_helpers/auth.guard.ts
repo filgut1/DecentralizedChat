@@ -12,11 +12,17 @@ export class AuthGuard implements CanActivate {
         private db: GunDB
     ) {}
 
-    canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
-        const user = this.accountService.userValue;
-        if (user) {
-            // authorised so return true
-            return true;
+    async canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
+        try {
+            const user = this.accountService.userValue || await this.db.$onAuth();
+            if (user) {
+                // authorised so return true
+                return true;
+            }
+        } catch(err) {
+            // not logged in so redirect to login page with the return url
+            this.router.navigate(['/account/login'], { queryParams: { returnUrl: state.url }});
+            return false;
         }
 
         // not logged in so redirect to login page with the return url

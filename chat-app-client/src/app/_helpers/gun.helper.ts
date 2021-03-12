@@ -21,8 +21,8 @@ export function on$(node, cleanup = true, opts = {}): Observable<any> {
     );
 }
 
-export function val$(node): Observable<any> {
-    return new Observable(o => node.val(v => {
+export function once$(node): Observable<any> {
+    return new Observable(o => node.once(v => {
         o.next(v);
         o.complete();
     }));

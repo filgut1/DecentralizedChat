@@ -7,17 +7,23 @@ import { on$ } from '@app/_helpers';
 
 @Component({ templateUrl: 'list.component.html' })
 export class ListComponent implements OnInit {
-    contacts = null;
+    contacts: Map<any, any>;
 
     constructor(
-        private accountService: AccountService,
         private db: GunDB
-    ) {}
-
-    ngOnInit() {
-
+    ) {
+        this.contacts = new Map();
     }
 
-    deleteUser(id: string) {
+    ngOnInit() {
+        this.db.on$(this.db.gunUser.get('contacts')).subscribe(res => {
+            Object.keys(res).forEach(async path => {
+              const user = this.db.gun.get(path);
+              this.contacts.set(path, (await this.db.$once(user)).epub);
+            });
+          });
+    }
+
+    deleteContact(id: string) {
     }
 }

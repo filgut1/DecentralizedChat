@@ -39,7 +39,7 @@ export class AddEditComponent implements OnInit {
     // convenience getter for easy access to form fields
     get f() { return this.form.controls; }
 
-    onSubmit() {
+    async onSubmit() {
         this.submitted = true;
 
         // reset alerts on submit
@@ -49,16 +49,13 @@ export class AddEditComponent implements OnInit {
         if (this.form.invalid) {
             return;
         }
-
-        this.db.gun.get('users').get(this.f.alias.value).once(d => {
-            if (!d) {
-                this.alertService.error('User not found');
-            } else {
-                this.db.addContact(this.f.alias.value, d.epub);
-                this.router.navigate(['../../'], { relativeTo: this.route });
-            }
-
-            this.loading = false;
-        });
+        const res = await this.db.$findUserByAlias(this.f.alias.value);
+        if (res) {
+            await this.db.addContact(this.f.alias.value, res.epub);
+            this.router.navigate(['../../'], { relativeTo: this.route });
+        } else {
+            this.alertService.error('User not found');
+        }
+        this.loading = false;
     }
 }
