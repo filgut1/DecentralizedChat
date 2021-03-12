@@ -1,0 +1,19 @@
+
+<div *ngIf="loading" class="loader">
+    <p></p>
+    <h4>Loading</h4>
+</div>
+  <!-- Set A Ng Repeat For Our Messages || Check To See If Our Value (Which Is Set Via Ng Click) Is Equal To The Id Of The Message List We Want To Show -->
+<div *ngIf="!loading" class="message-wrap">
+    <!-- Repeat Each Item In The Array Seperately -->
+    <div class="message" *ngFor="let message of conversation" [ngClass]="{'received': message.received}">
+        <p>{{message.message}}</p>
+        <!--<img src='{{message.avatar}}'>-->
+    </div>
+</div>
+<footer>
+    <form>
+        <input type="text" [(ngModel)]="messageContent" class="form-control" name="messageContent" placeholder='Enter a message'>
+        <input type='submit' value='Send' (click)="sendMessage()" [disabled]="!currentConvoKey">
+    </form>
+</footer>

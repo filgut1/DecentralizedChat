@@ -1,0 +1,10 @@
+
+<ul *ngIf="!loading" ng-controller='chatCtrl as chat'>
+    <div *ngFor="let key of chats.keys()">
+        <li (click)="loadConvo(chats.get(key).epub)">
+        <img class='avatar' src='{{chats.get(key).avatar}}'>
+        <p class='username'>{{chats.get(key).alias}}</p>
+        </li>
+    </div>
+</ul>
+<span *ngIf="loading" class="spinner-border spinner-border-sm mr-1"></span>
