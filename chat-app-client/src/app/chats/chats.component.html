@@ -1,10 +1,19 @@
 
-<ul *ngIf="!loading" ng-controller='chatCtrl as chat'>
-    <div *ngFor="let key of chats.keys()">
-        <li (click)="loadConvo(chats.get(key).epub)">
-        <img class='avatar' src='{{chats.get(key).avatar}}'>
-        <p class='username'>{{chats.get(key).alias}}</p>
-        </li>
-    </div>
+<!--<header>
+    <input type="text" placeholder="search">
+</header>
+-->
+
+<ul class="users">
+    <li *ngFor="let key of chats.keys()" (click)="loadConvo(chats.get(key))"
+        class="person">
+        <div class="user">
+            <img src="">
+            <span class="status busy"></span>
+        </div>
+        <p class="name-time">
+            <span class="name">{{chats.get(key).alias}}</span>
+            <span class="time">15/02/2019</span>
+        </p>
+    </li>
 </ul>
-<span *ngIf="loading" class="spinner-border spinner-border-sm mr-1"></span>

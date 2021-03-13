@@ -15,7 +15,7 @@ export class HomeComponent {
     public alias;
     public contacts;
     loading = false;
-    currentConvoKey: String;
+    currentConvo: any;
 
     constructor(
         private accountService: AccountService,

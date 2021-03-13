@@ -10,8 +10,8 @@ import { Observable } from 'rxjs';
   styleUrls: ['./chats.component.less']
 })
 export class ChatsComponent implements OnInit {
-  @Input() currentConvoKey: String;
-  @Output() currentConvoKeyChange = new EventEmitter<String>();
+  @Input() currentConvo: any;
+  @Output() currentConvoChange = new EventEmitter<any>();
   public chats: Map<any, any>;
   private contacts$: Observable<any>;
   public searchString: String;
@@ -45,9 +45,9 @@ export class ChatsComponent implements OnInit {
     this.contacts$.subscribe(this.handleNewContactChat.bind(this)); */
   }
 
-  async loadConvo(epub) {
+  async loadConvo(user) {
 
-    this.currentConvoKeyChange.emit(epub);
+    this.currentConvoChange.emit(user);
   }
 
   handleNewContactChat(data) {

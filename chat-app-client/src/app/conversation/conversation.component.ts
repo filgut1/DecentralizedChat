@@ -10,7 +10,7 @@ export class ConversationComponent implements OnInit {
   public loading: Boolean = false;
   public messageContent: String = '';
   public conversation: Array<any>;
-  @Input() currentConvoKey: String;
+  @Input() currentConvo: any;
   constructor(
     private db: GunDB
   ) { 
@@ -21,11 +21,12 @@ export class ConversationComponent implements OnInit {
   }
 
   async ngOnChanges(changes: SimpleChanges) {
-    if (changes.currentConvoKey.currentValue) {
+    if (changes.currentConvo.currentValue) {
+      const epub = changes.currentConvo.currentValue.epub;
       this.loading = true;
       const [msgPathsFrom, msgPathsTo] = await Promise.all([
-        this.db.$once(this.db.messagesFrom(changes.currentConvoKey.currentValue)),
-        this.db.$once(this.db.messagesTo(changes.currentConvoKey.currentValue)),
+        this.db.$once(this.db.messagesFrom(epub)),
+        this.db.$once(this.db.messagesTo(epub)),
       ]);
 
       // Create a flattened array of message paths 
@@ -38,7 +39,7 @@ export class ConversationComponent implements OnInit {
       this.loading = false;
 
       // Subscribe to new messages
-      this.db.on$(this.db.messagesFrom(changes.currentConvoKey.currentValue).map(),
+      this.db.on$(this.db.messagesFrom(epub).map(),
         {change: true}).subscribe(async data => {
           await this.db.decryptMessage(data);
           // Make the message appear as a received message (see ngClass in template)
@@ -76,8 +77,8 @@ export class ConversationComponent implements OnInit {
   sendMessage() {
     console.log(this.messageContent);
     const ts = (new Date()).getTime();
-    if (this.currentConvoKey) {
-      this.db.sendMessage(this.currentConvoKey, 'asdf', this.messageContent, ts);
+    if (this.currentConvo) {
+      this.db.sendMessage(this.currentConvo.epub, this.currentConvo.alias, this.messageContent, ts);
       this.conversation.push({
           from: this.db.myAlias,
           ts: ts,
