@@ -118,13 +118,13 @@ export class GunDB {
                 .get('sent')
                 .get(epub)
                 .get(uuid)
-                .put({
+                .put(JSON.stringify({
                     from: this.myAlias,
                     epub: this.myEpub,
                     ts: ts,
                     uuid,
                     message: encForMe
-                });
+                }));
             this.gun
                 .get('convos')
                 .get('to')
@@ -132,13 +132,13 @@ export class GunDB {
                 .get('from')
                 .get(this.myEpub)
                 .get(uuid)
-                .put({
+                .put(JSON.stringify({
                     from: this.myAlias,
                     epub: this.myEpub,
                     ts: ts,
                     uuid,
                     message: enc
-                });
+                }));
         }
     }
 

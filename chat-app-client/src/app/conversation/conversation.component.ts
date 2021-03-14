@@ -1,24 +1,42 @@
-import { Component, Input, OnInit, SimpleChanges } from '@angular/core';
+import { Component, Input, OnInit, SimpleChanges, AfterViewChecked, ViewChild, ElementRef } from '@angular/core';
+import { Observable, Subscriber, Subscription  } from 'rxjs';
 import { GunDB } from '@app/_services';
+import { User } from '@app/_models';
+import { AccountService } from '@app/_services';
 
 @Component({
   selector: 'app-conversation',
   templateUrl: './conversation.component.html',
   styleUrls: ['./conversation.component.less']
 })
-export class ConversationComponent implements OnInit {
+export class ConversationComponent implements OnInit, AfterViewChecked  {
+  @ViewChild('scrollBottom') private scrollBottom: ElementRef;
   public loading: Boolean = false;
   public messageContent: String = '';
+  public user: User;
   public conversation: Array<any>;
+  public messagesSubscription: Subscription;
   @Input() currentConvo: any;
   constructor(
-    private db: GunDB
+    private db: GunDB,
+    private accountService: AccountService,
   ) { 
+    this.user = this.accountService.userValue;
   }
 
   ngOnInit(): void {
 
   }
+
+  ngAfterViewChecked() {        
+    this.scrollToBottom();        
+   } 
+
+   scrollToBottom(): void {
+       try {
+           this.scrollBottom.nativeElement.scrollTop = this.scrollBottom.nativeElement.scrollHeight;
+       } catch(err) { }
+   }
 
   async ngOnChanges(changes: SimpleChanges) {
     if (changes.currentConvo.currentValue) {
@@ -32,44 +50,54 @@ export class ConversationComponent implements OnInit {
       // Create a flattened array of message paths 
       const msgPaths = [].concat.apply([], [
         ...Object.values(msgPathsFrom), 
-        ...Object.values(msgPathsTo)].map(e => Object.values(e)));
+        ...Object.values(msgPathsTo)]);
 
       // Need to load and sort existing messages first
       this.conversation = await this.loadMessages(msgPaths);
       this.loading = false;
 
-      // Subscribe to new messages
-      this.db.on$(this.db.messagesFrom(epub).map(),
-        {change: true}).subscribe(async data => {
-          await this.db.decryptMessage(data);
-          // Make the message appear as a received message (see ngClass in template)
-          data.received = true;
+
+      this.messagesSubscription = new Observable(o => { 
+        let stopped = false;
+        this.db.messagesFrom(epub).map().on(async (data, key, at, ev) => {
+          if (stopped) {
+            o.complete()
+            return ev.off()
+        }
+          const res = await this.db.decryptMessage(JSON.parse(data));
           // Check for duplicate messages just in case
-          if (!this.conversation.some(e => e.uuid === data.uuid)) {
-            this.conversation.push(data);
+          if (!this.conversation.some(e => e.uuid === res.uuid)) {
+            o.next(res);
+          }
+        }, {change: true});
+        return () => {
+          stopped = true;
+        }
+      }).subscribe(d => this.conversation.push(d));
+
+      // Subscribe to new messages
+      /* this.db.on$(this.db.messagesFrom(epub).map(),
+        {change: true}).subscribe(async data => {
+          const res = await this.db.decryptMessage(JSON.parse(data));
+          // Check for duplicate messages just in case
+          if (!this.conversation.some(e => e.uuid === res.uuid)) {
+            this.conversation.push(res);
           }
         });
+        */
     }
   }
 
-  async loadMessages(messagePaths) {
-    const getPromises = [];
+  async loadMessages(messages) {
     const decryptPromises = [];
-    for (const path of messagePaths) {
-        const node = this.db.gun.get(path);
-        getPromises.push(this.db.$once(node));
-    }
-    const results = await Promise.all(getPromises);
-
-    for (const data of results) {
-      if (data.epub === this.db.myEpub) {
-        decryptPromises.push(this.db.decryptMyOwnMessage(data));
+    for (let message of messages) {
+      message = JSON.parse(message);
+      if (this.isReceivedMessage(message)) {
+        decryptPromises.push(this.db.decryptMessage(message));
       } else {
-        data.received = true;
-        decryptPromises.push(this.db.decryptMessage(data));
+        decryptPromises.push(this.db.decryptMyOwnMessage(message));
       }
     }
-
     const final = await Promise.all(decryptPromises);
     return final.sort((a, b) => a.ts - b.ts);
   }
@@ -84,6 +112,15 @@ export class ConversationComponent implements OnInit {
           ts: ts,
           message: this.messageContent
       });
+      this._clearChat();
     }
+  }
+
+  isReceivedMessage(message) {
+    return this.user.alias !== message.from;
+  }
+
+  private _clearChat() {
+    this.messageContent = '';
   }
 }

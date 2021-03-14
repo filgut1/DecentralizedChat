@@ -6,10 +6,9 @@
 
 <ul class="users">
     <li *ngFor="let key of chats.keys()" (click)="loadConvo(chats.get(key))"
-        class="person">
+        class="person" [ngClass]="{'active-user': currentConvo && currentConvo.epub === chats.get(key).epub}">
         <div class="user">
-            <img src="">
-            <span class="status busy"></span>
+            <img src="https://cdn2.iconfinder.com/data/icons/rcons-user/32/male-shadow-circle-512.png">
         </div>
         <p class="name-time">
             <span class="name">{{chats.get(key).alias}}</span>
