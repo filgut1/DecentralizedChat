@@ -1,0 +1,38 @@
+﻿<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+
+<ion-app>
+
+    <ion-content fullscreen class="ion-padding" >
+        <ion-tabs>
+            <ion-tab-bar slot="bottom">
+                <ion-tab-button tab="">
+                    <ion-icon name="chatbox-outline"></ion-icon>
+                    <ion-label>Chats</ion-label>
+                    <ion-badge>6</ion-badge>
+                </ion-tab-button>
+            
+                <ion-tab-button tab="contacts">
+                    <ion-icon name="person-circle"></ion-icon>
+                    <ion-label>Contacts</ion-label>
+                </ion-tab-button>
+            
+                <ion-tab-button (click)="logout()" tab="logout">
+                    <ion-icon name="log-out-outline"></ion-icon>
+                    <ion-label>Logout</ion-label>
+                </ion-tab-button>
+            </ion-tab-bar>
+        </ion-tabs>
+        <!-- Row start -->
+        <form class="input-group">
+            <ion-searchbar></ion-searchbar>
+        </form>
+        <app-chats [(currentConvo)]="currentConvo" (curentConvoChange)="currentConvo=$event"></app-chats>
+
+          
+        <!-- <app-conversation [(currentConvo)]="currentConvo"></app-conversation>-->
+              
+          
+    </ion-content>
+</ion-app>
+
+<!-- Row end -->

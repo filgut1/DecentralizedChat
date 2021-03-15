@@ -1,0 +1,15 @@
+
+{
+  "defaultProject": "ionic-client",
+  "projects": {
+    "ionic-client": {
+      "name": "ionic-client",
+      "integrations": {
+        "cordova": {},
+        "capacitor": {}
+      },
+      "type": "angular"
+    }
+  }
+}
+
