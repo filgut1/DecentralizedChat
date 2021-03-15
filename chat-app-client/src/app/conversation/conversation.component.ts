@@ -30,13 +30,13 @@ export class ConversationComponent implements OnInit, AfterViewChecked  {
 
   ngAfterViewChecked() {        
     this.scrollToBottom();        
-   } 
+  } 
 
-   scrollToBottom(): void {
-       try {
-           this.scrollBottom.nativeElement.scrollTop = this.scrollBottom.nativeElement.scrollHeight;
-       } catch(err) { }
-   }
+  scrollToBottom(): void {
+    try {
+      this.scrollBottom.nativeElement.scrollTop = this.scrollBottom.nativeElement.scrollHeight;
+    } catch(err) { }
+  }
 
   async ngOnChanges(changes: SimpleChanges) {
     if (changes.currentConvo.currentValue) {
