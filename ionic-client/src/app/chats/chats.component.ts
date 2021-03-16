@@ -28,8 +28,6 @@ export class ChatsComponent implements OnInit {
   }
 
   ngOnInit() {
-
-
     this.db.on$(this.db.gunUser.get('contacts')).subscribe(res => {
       Object.keys(res).forEach(async path => {
         const userPath = this.db.gun.get(path);
@@ -41,24 +39,9 @@ export class ChatsComponent implements OnInit {
         });
       });
     });
-
-    // Subscribe to my received messages table
-    /* const contacts = this.db.gunUser
-        .get('contacts');
-    this.contacts$ = on$(contacts, true);
-    this.contacts$.subscribe(this.handleNewContactChat.bind(this)); */
   }
 
   async loadConvo(user) {
-
-    /* this.currentConvoChange.emit(user);
-    const modal = await this.modalController.create({
-      component: ConversationComponent,
-      swipeToClose: true,
-      componentProps: { currentConvo: user }
-    });
-    return await modal.present();
-    */
    this.navCtrl.navigateForward(['conversation'], {state: user});
   }
 

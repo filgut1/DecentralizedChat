@@ -19,7 +19,10 @@ export class AppComponent implements OnInit {
   async ngOnInit() {
       if (this.user && !this.db.isLoggedIn()) {
           this.loading = true;
-          await this.db.$onAuth();
+          try {
+            await this.db.$onAuth();
+          } catch (err) {
+          }
           this.loading = false;
       }
       // In case of refresh, need to wait for authentication

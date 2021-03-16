@@ -4,6 +4,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { LayoutComponent } from './layout.component';
 import { LoginComponent } from './login.component';
 import { RegisterComponent } from './register.component';
+import { IonicModule } from '@ionic/angular';
 
 const routes: Routes = [
     {
@@ -16,7 +17,10 @@ const routes: Routes = [
 ];
 
 @NgModule({
-    imports: [RouterModule.forChild(routes)],
+    imports: [
+        RouterModule.forChild(routes),
+        IonicModule.forRoot()
+    ],
     exports: [RouterModule]
 })
 export class AccountRoutingModule { }

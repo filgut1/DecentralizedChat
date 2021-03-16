@@ -1,9 +1,10 @@
 ﻿import { Component, OnInit } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { first } from 'rxjs/operators';
+import { NavController } from '@ionic/angular';
+import { AlertService } from '@app/_services';
 
-import { AccountService, AlertService } from '@app/_services';
+
+import { AccountService } from '@app/_services';
 
 @Component({ templateUrl: 'register.component.html' })
 export class RegisterComponent implements OnInit {
@@ -13,10 +14,9 @@ export class RegisterComponent implements OnInit {
 
     constructor(
         private formBuilder: FormBuilder,
-        private route: ActivatedRoute,
-        private router: Router,
         private accountService: AccountService,
-        private alertService: AlertService
+        private alertService: AlertService,
+        public navCtrl: NavController
     ) { }
 
     ngOnInit() {
@@ -32,9 +32,6 @@ export class RegisterComponent implements OnInit {
     onSubmit() {
         this.submitted = true;
 
-        // reset alerts on submit
-        this.alertService.clear();
-
         // stop here if form is invalid
         if (this.form.invalid) {
             return;
@@ -43,7 +40,7 @@ export class RegisterComponent implements OnInit {
         this.loading = true;
         this.accountService.register(this.form.value).then(() => {
             this.alertService.success('Registration successful', { keepAfterRouteChange: true });
-            this.router.navigate(['../login'], { relativeTo: this.route });
+            this.navCtrl.navigateRoot(['/login']);
         }).catch(err => {
             this.alertService.error(err);
             this.loading = false;

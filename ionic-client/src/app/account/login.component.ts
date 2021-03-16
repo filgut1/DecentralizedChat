@@ -1,11 +1,12 @@
 ﻿import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { first } from 'rxjs/operators';
+import { NavController } from '@ionic/angular';
+import { AccountService } from '@app/_services';
+import { AlertService } from '@app/_services';
 
-import { AccountService, AlertService } from '@app/_services';
 
-@Component({ templateUrl: 'login.component.html' })
+@Component({ templateUrl: './login.component.html' })
 export class LoginComponent implements OnInit {
     form: FormGroup;
     loading = false;
@@ -13,10 +14,9 @@ export class LoginComponent implements OnInit {
 
     constructor(
         private formBuilder: FormBuilder,
-        private route: ActivatedRoute,
-        private router: Router,
         private accountService: AccountService,
         private alertService: AlertService,
+        public navCtrl: NavController
     ) { }
 
     ngOnInit() {
@@ -32,9 +32,6 @@ export class LoginComponent implements OnInit {
     onSubmit() {
         this.submitted = true;
 
-        // reset alerts on submit
-        this.alertService.clear();
-
         // stop here if form is invalid
         if (this.form.invalid) {
             return;
@@ -43,12 +40,13 @@ export class LoginComponent implements OnInit {
         this.loading = true;
         this.accountService.login(this.f.alias.value, this.f.password.value)
             .then(user => {
-                // get return url from query parameters or default to home page
-                const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
-                this.router.navigateByUrl(returnUrl);
+               
+                this.submitted = false;
+                this.navCtrl.navigateRoot(['/']);
             }).catch(err => {
                 this.alertService.error(err);
                 this.loading = false;
+                this.submitted = false;
             });
     }
 }

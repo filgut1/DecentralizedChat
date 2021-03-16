@@ -11,7 +11,7 @@ import { AccountService } from '@app/_services';
   styleUrls: ['./conversation.component.less']
 })
 export class ConversationComponent implements OnInit, AfterViewChecked  {
-  @ViewChild('scrollBottom') private scrollBottom: ElementRef;
+  @ViewChild('scrollBottom') scrollBottom:any;
   public loading: Boolean = false;
   public messageContent: String = '';
   public user: User;
@@ -68,9 +68,13 @@ export class ConversationComponent implements OnInit, AfterViewChecked  {
     this.scrollToBottom();        
   } 
 
+  ionViewDidEnter(){
+    this.scrollToBottom();
+  }
+
   scrollToBottom(): void {
     try {
-      this.scrollBottom.nativeElement.scrollTop = this.scrollBottom.nativeElement.scrollHeight;
+      this.scrollBottom.scrollToBottom(300);
     } catch(err) { }
   }
 
@@ -154,6 +158,12 @@ export class ConversationComponent implements OnInit, AfterViewChecked  {
 
   isReceivedMessage(message) {
     return this.user.alias !== message.from;
+  }
+
+  checkLastMessage(i) {
+    return this.conversation && i > 0 && 
+      this.conversation.length > 1 &&
+      this.conversation[i - 1].from === this.conversation[i].from;
   }
 
   private _clearChat() {

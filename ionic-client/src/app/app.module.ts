@@ -7,18 +7,23 @@ import { IonicModule } from '@ionic/angular';
 
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { GunDB } from './_services';
-import { AlertComponent } from './_components';
+import { AlertService } from './_services';
 import { HomeComponent } from './home';
 import { ChatsComponent } from './chats/chats.component';
 import { ConversationComponent } from './conversation/conversation.component';
+import { AddEditComponent } from './contacts/add-edit.component';
+import { LoginComponent } from './account/login.component';
+import { RegisterComponent } from './account/register.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    AlertComponent,
+    LoginComponent,
+    RegisterComponent,
     HomeComponent,
     ChatsComponent ,
-    ConversationComponent,   
+    ConversationComponent,
+    AddEditComponent
   ],
   imports: [
     BrowserModule,
@@ -28,7 +33,8 @@ import { ConversationComponent } from './conversation/conversation.component';
     IonicModule.forRoot()
   ],
   providers: [
-    GunDB
+    GunDB,
+    AlertService
   ],
   bootstrap: [AppComponent]
 })

@@ -37,7 +37,7 @@ export class AccountService {
         localStorage.removeItem('user');
         this.userSubject.next(null);
         this.gunDB.logout();
-        this.navCtrl.navigateForward(['/account/login']);
+        this.navCtrl.navigateRoot(['/login']);
     }
 
     register(user: User) {

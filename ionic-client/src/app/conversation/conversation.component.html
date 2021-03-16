@@ -1,39 +1,36 @@
 <ion-header>
     <ion-toolbar>
-      <ion-back-button slot="start" defaultHref="/"></ion-back-button> 
-      <ion-title>
-        {{currentConvo && currentConvo.alias}}
-      </ion-title>
+        <ion-back-button slot="start" defaultHref="/"></ion-back-button> 
+        <ion-title>
+            {{currentConvo && currentConvo.alias}}
+        </ion-title>
     </ion-toolbar>
-  </ion-header>
-<ion-content>
+</ion-header>
+<ion-content #scrollBottom>
     <ion-grid>
-        <ion-row *ngFor="let message of conversation" [ngClass]="{
+        <ion-row *ngFor="let message of conversation; let i = index" class="message" [ngClass]="{
             'ion-align-self-start': isReceivedMessage(message), 
             'ion-align-self-end': !isReceivedMessage(message)}">
 
             <ion-col size="9" *ngIf="isReceivedMessage(message)"
-                [ngClass]="{'my_message': !isReceivedMessage(message), 'other_message': isReceivedMessage(message)}">
+            [ngClass]="{'my_message': !isReceivedMessage(message), 'other_message': isReceivedMessage(message), 'continued_message': checkLastMessage(i)}">
                 
-                <span class="user_name">{{ message.from }}:</span><br>
+                <span *ngIf="!checkLastMessage(i)" class="user_name">{{ message.from }}</span><br>
                 <span>{{ message.message }}</span>
                 <div class="time">{{message.ts | date:'shortTime'}}</div>
             </ion-col>
 
             <ion-col offset="3" size="9" *ngIf="!isReceivedMessage(message)"
-                [ngClass]="{'my_message': !isReceivedMessage(message), 'other_message': isReceivedMessage(message)}">
+                [ngClass]="{'my_message': !isReceivedMessage(message), 'other_message': isReceivedMessage(message), 'continued_message': checkLastMessage(i)}">
                 
-                <span class="user_name">{{ message.from }}:</span><br>
+                <span *ngIf="!checkLastMessage(i)" class="user_name">{{ message.from }}</span><br>
                 <span>{{ message.message }}</span>
                 <div class="time">{{message.ts | date:'shortTime'}}</div>
             </ion-col>
         </ion-row>
     </ion-grid>
 </ion-content>
-
-
 <ion-footer>
-
     <ion-item no-lines>
         <ion-input type="text" placeholder="Message" name="messageContent" [(ngModel)]="messageContent"></ion-input>
         <button ion-button clear color="primary" (click)="sendMessage()" [disabled]="messageContent === ''">

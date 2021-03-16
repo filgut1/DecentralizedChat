@@ -1,8 +1,8 @@
 ﻿import { Component, OnInit } from '@angular/core';
 import { User } from '@app/_models';
 import { AccountService } from '@app/_services';
-import { GunDB } from '@app/_services';
-import { on$ } from '@app/_helpers';
+import { ModalController } from '@ionic/angular';
+import { AddEditComponent } from '@app/contacts/add-edit.component';
 
 @Component({ 
     templateUrl: 'home.component.html'
@@ -17,9 +17,18 @@ export class HomeComponent {
     currentConvo: any;
 
     constructor(
-        private accountService: AccountService
+        private accountService: AccountService,
+        public modalController: ModalController,
     ) {
         this.user = this.accountService.userValue;
+    }
+
+    async newChat() {
+        const modal = await this.modalController.create({
+            component: AddEditComponent,
+            swipeToClose: true
+        });
+        return await modal.present();
     }
 
     logout() {

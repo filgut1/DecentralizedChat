@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { IonicModule } from '@ionic/angular';
 
 import { AccountRoutingModule } from './account-routing.module';
 import { LayoutComponent } from './layout.component';
@@ -11,7 +12,8 @@ import { RegisterComponent } from './register.component';
     imports: [
         CommonModule,
         ReactiveFormsModule,
-        AccountRoutingModule
+        AccountRoutingModule,
+        IonicModule.forRoot()
     ],
     declarations: [
         LayoutComponent,

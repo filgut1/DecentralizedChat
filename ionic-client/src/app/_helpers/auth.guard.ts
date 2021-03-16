@@ -1,6 +1,6 @@
 ﻿import { Injectable } from '@angular/core';
 import { Router, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
-
+import { NavController } from '@ionic/angular';
 import { AccountService } from '@app/_services';
 import { GunDB } from '@app/_services';
 
@@ -9,7 +9,8 @@ export class AuthGuard implements CanActivate {
     constructor(
         private router: Router,
         private accountService: AccountService,
-        private db: GunDB
+        private db: GunDB,
+        public navCtrl: NavController
     ) {}
 
     async canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
@@ -21,12 +22,14 @@ export class AuthGuard implements CanActivate {
             }
         } catch(err) {
             // not logged in so redirect to login page with the return url
-            this.router.navigate(['/account/login'], { queryParams: { returnUrl: state.url }});
+            this.navCtrl.navigateRoot(['/login']);
+            this.router.navigate(['/login'], { queryParams: { returnUrl: state.url }});
             return false;
         }
 
         // not logged in so redirect to login page with the return url
-        this.router.navigate(['/account/login'], { queryParams: { returnUrl: state.url }});
+        this.navCtrl.navigateRoot(['/login']);
+        this.router.navigate(['/login'], { queryParams: { returnUrl: state.url }});
         return false;
     }
 }

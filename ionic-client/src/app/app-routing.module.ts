@@ -4,15 +4,14 @@ import { RouterModule, Routes } from '@angular/router';
 import { HomeComponent } from './home';
 import { ConversationComponent } from '@app/conversation/conversation.component';
 import { AuthGuard } from './_helpers';
-
-const accountModule = () => import('./account/account.module').then(x => x.AccountModule);
-const contactsModule = () => import('./contacts/contacts.module').then(x => x.ContactsModule);
+import { LoginComponent } from './account/login.component';
+import { RegisterComponent } from './account/register.component';
 
 const routes: Routes = [
     { path: '', component: HomeComponent, canActivate: [AuthGuard] },
     { path: 'conversation', component: ConversationComponent, canActivate: [AuthGuard] },
-    { path: 'contacts', loadChildren: contactsModule, canActivate: [AuthGuard] },
-    { path: 'account', loadChildren: accountModule },
+    { path: 'login', component: LoginComponent },
+    { path: 'register', component: RegisterComponent },
 
     // otherwise redirect to home
     { path: '**', redirectTo: '' }
