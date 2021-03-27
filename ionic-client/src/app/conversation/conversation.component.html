@@ -6,21 +6,21 @@
         </ion-title>
     </ion-toolbar>
 </ion-header>
-<ion-content #scrollBottom>
-    <ion-grid>
-        <ion-row *ngFor="let message of conversation; let i = index" class="message" [ngClass]="{
+<ion-content  #scrollBottom>
+    <ion-grid *ngIf="asyncConvo$ | async as asyncConvo">
+        <ion-row *ngFor="let message of asyncConvo; let i = index;  trackBy: trackByUuid" class="message" [ngClass]="{
             'ion-align-self-start': isReceivedMessage(message), 
             'ion-align-self-end': !isReceivedMessage(message)}">
 
-            <ion-col size="9" *ngIf="isReceivedMessage(message)"
-            [ngClass]="{'my_message': !isReceivedMessage(message), 'other_message': isReceivedMessage(message), 'continued_message': checkLastMessage(i)}">
+            <ion-col size="9" *ngIf="message && isReceivedMessage(message)"
+                [ngClass]="{'my_message': !isReceivedMessage(message), 'other_message': isReceivedMessage(message), 'continued_message': checkLastMessage(i)}">
                 
                 <span *ngIf="!checkLastMessage(i)" class="user_name">{{ message.from }}</span><br>
                 <span>{{ message.message }}</span>
                 <div class="time">{{message.ts | date:'shortTime'}}</div>
             </ion-col>
 
-            <ion-col offset="3" size="9" *ngIf="!isReceivedMessage(message)"
+            <ion-col offset="3" size="9" *ngIf="message && !isReceivedMessage(message)"
                 [ngClass]="{'my_message': !isReceivedMessage(message), 'other_message': isReceivedMessage(message), 'continued_message': checkLastMessage(i)}">
                 
                 <span *ngIf="!checkLastMessage(i)" class="user_name">{{ message.from }}</span><br>

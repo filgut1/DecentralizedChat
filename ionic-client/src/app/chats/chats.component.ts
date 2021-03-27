@@ -28,7 +28,7 @@ export class ChatsComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.db.on$(this.db.gunUser.get('contacts')).subscribe(res => {
+    this.db.on$(this.db.gunUser.get('contacts').map()).subscribe(res => {
       Object.keys(res).forEach(async path => {
         const userPath = this.db.gun.get(path);
         const user = await this.db.$once(userPath);
@@ -43,6 +43,10 @@ export class ChatsComponent implements OnInit {
 
   async loadConvo(user) {
    this.navCtrl.navigateForward(['conversation'], {state: user});
+  }
+
+  get chatKeys() {
+    return Array.from(this.chats.keys());
   }
 
   handleNewContactChat(data) {

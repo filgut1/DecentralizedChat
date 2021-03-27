@@ -1,5 +1,5 @@
 <ion-list>
-    <ion-item-sliding *ngFor="let key of chats.keys()" (click)="loadConvo(chats.get(key))"
+    <ion-item-sliding *ngFor="let key of chatKeys" (click)="loadConvo(chats.get(key))"
         [ngClass]="{'active-user': currentConvo && currentConvo.epub === chats.get(key).epub}">
         <ion-item-options side="start">
             <ion-item-option (click)="loadConvo(chats.get(key))">Chat</ion-item-option>

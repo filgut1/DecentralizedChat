@@ -13,7 +13,7 @@ export class GunDB {
     readonly gunUser:any;
     readonly sea:any;
     constructor() {
-        this.gun = Gun('http://192.168.0.15:3001/gun');
+        this.gun = Gun('http://localhost:3001/gun');
         this.sea = Gun.SEA;
         this.gunUser = this.gun.user();
         this.gunUser.recall({sessionStorage: true});
@@ -27,11 +27,11 @@ export class GunDB {
     get myAlias() { return this.gunUser.is.alias; }
 
     messagesFrom(epub) {
-        return this.gun.get('convos').get('to').get(this.myEpub).get('from').get(epub);
+        return this.gun.get('convos').get(this.myEpub).get(epub);
     }
 
     messagesTo(epub) {
-        return this.gunUser.get('sent').get(epub);
+        return this.gun.get('convos').get(epub).get(this.myEpub);
     }
 
     authenticate(username:String, password:String): Promise<any> {
@@ -54,9 +54,10 @@ export class GunDB {
                 } else {
                     this.gunUser.auth(user.alias, user.password, async ack => {
                         const { alias } = user; // Don't store the password!
-                        this.gun.get('users')
-                            .get(alias)
-                            .put({epub: ack.sea.epub, alias});
+                        const profile = this.gunUser.get('profile')
+                            .put({epub: ack.sea.epub, alias}, ack => {
+                                this.gun.get('users').get(alias).set(profile);
+                            });
 
                         resolve(this.gunUser.is);
                     });
@@ -65,7 +66,7 @@ export class GunDB {
         });
     }
 
-    addContact(alias, epub): Promise<any> {
+    addContact(alias): Promise<any> {
         if (this.isLoggedIn()) {
             const contact = this.gun.get('users').get(alias);
 
@@ -100,7 +101,7 @@ export class GunDB {
     $findUserByAlias(alias): Promise<any> {
         if (this.isLoggedIn()) {
             return new Promise((resolve, reject) => {
-                this.gun.get('users').get(alias).once(d => {
+                this.gun.get('users').get(alias).map().once(d => {
                     d ? resolve(this.cleanup(d)) : reject(d);
                 });
             });
@@ -113,44 +114,34 @@ export class GunDB {
             const enc = await this.sea.encrypt(message, secret);
             const encForMe = await this.sea.encrypt(message, this.gunUser._.sea);
             const uuid = v4();
-    
-            this.gunUser
+   
+            const msgNode = this.gunUser
                 .get('sent')
                 .get(epub)
                 .get(uuid)
-                .put(JSON.stringify({
+                .put({
                     from: this.myAlias,
                     epub: this.myEpub,
-                    ts: ts,
+                    ts,
                     uuid,
-                    message: encForMe
-                }));
-            this.gun
-                .get('convos')
-                .get('to')
-                .get(epub)
-                .get('from')
-                .get(this.myEpub)
-                .get(uuid)
-                .put(JSON.stringify({
-                    from: this.myAlias,
-                    epub: this.myEpub,
-                    ts: ts,
-                    uuid,
+                    encForMe,
                     message: enc
-                }));
+                }, ack => { 
+                    this.gun.get('convos').get(epub).get(this.myEpub).set(msgNode) 
+                });
         }
     }
 
     async decryptMyOwnMessage(messageObj) {
-        messageObj.message = await this.sea.decrypt(messageObj.message, this.gunUser._.sea);
+        messageObj.message = await this.sea.decrypt(messageObj.encForMe, this.gunUser._.sea);
         return messageObj;
     }
 
     async decryptMessage(messageObj) {
+        const msgCpy = Object.assign({}, messageObj);
         const secret = await this.sea.secret(messageObj.epub, this.gunUser._.sea);
-        messageObj.message = await this.sea.decrypt(messageObj.message, secret);
-        return messageObj;
+        msgCpy.message = await this.sea.decrypt(messageObj.message, secret);
+        return msgCpy;
     }
 
     onAuth$(): Observable<any> {

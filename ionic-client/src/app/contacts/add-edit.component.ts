@@ -41,7 +41,7 @@ export class AddEditComponent implements OnInit {
         }
         try {
             const res = await this.db.$findUserByAlias(this.f.alias.value);
-            await this.db.addContact(this.f.alias.value, res.epub);
+            await this.db.addContact(this.f.alias.value);
             this.dismiss();
         } catch(err) {
             this.alertService.error('User not found')
