@@ -40,7 +40,7 @@ export class AddEditComponent implements OnInit {
             return;
         }
         try {
-            const res = await this.db.$findUserByAlias(this.f.alias.value);
+            const res = await this.db.findUserByAlias(this.f.alias.value);
             await this.db.addContact(this.f.alias.value);
             this.dismiss();
         } catch(err) {

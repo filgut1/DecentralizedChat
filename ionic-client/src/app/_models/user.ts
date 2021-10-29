@@ -1,4 +1,4 @@
-﻿export class User {
+﻿export interface User {
     epub: string;
     pub: string;
     alias: string;

@@ -22,7 +22,7 @@ export class LoginComponent implements OnInit {
     ngOnInit() {
         this.form = this.formBuilder.group({
             alias: ['', Validators.required],
-            password: ['', Validators.required]
+            password: ['1', Validators.required]
         });
     }
 

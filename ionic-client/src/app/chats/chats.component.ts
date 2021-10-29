@@ -1,10 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { GunDB } from '@app/_services';
-import { on$ } from '@app/_helpers';
-import { Observable } from 'rxjs';
 import { NavController } from '@ionic/angular';
 import { ModalController } from '@ionic/angular';
-import { ConversationComponent } from '@app/conversation/conversation.component';
 
 
 @Component({
@@ -15,7 +12,6 @@ export class ChatsComponent implements OnInit {
   @Input() currentConvo: any;
   @Output() currentConvoChange = new EventEmitter<any>();
   public chats: Map<any, any>;
-  private contacts$: Observable<any>;
   public searchString: String;
   public loading: Boolean = false;
 
@@ -28,33 +24,32 @@ export class ChatsComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.db.on$(this.db.gunUser.get('contacts').map()).subscribe(res => {
-      Object.keys(res).forEach(async path => {
-        const userPath = this.db.gun.get(path);
-        const user = await this.db.$once(userPath);
-
-        this.chats.set(path, { 
-          epub: user.epub,
-          alias: user.alias
-        });
-      });
+    this.db.on$(this.db.myConversations.map()).subscribe(convo => {
+      this.chats.set(convo.uuid, convo);
     });
   }
 
-  async loadConvo(user) {
-   this.navCtrl.navigateForward(['conversation'], {state: user});
+  async doRefresh(event) {
+    await this._loadChats();
+    event.target.complete();
+  }
+
+  private async _loadChats() {
+    this.loading = true;
+    const friends = await this.db.getAllContacts();
+    const res = await this.db.getUserConversations();
+    
+    res.forEach(convo => {
+      this.chats.set(convo.uuid, convo);
+    });
+  }
+
+  async loadConvo(convo) {
+   const chatData = await this.db.getConversation(convo.uuid);
+   this.navCtrl.navigateForward(['conversation'], {state: chatData});
   }
 
   get chatKeys() {
     return Array.from(this.chats.keys());
-  }
-
-  handleNewContactChat(data) {
-    for (const [key, value] of Object.entries(data)) {
-      this.db.gunUser.get('contacts').get(key).once(c => {
-        this.chats.set(key, c.epub);
-        this.loading = false;
-      });
-    }
   }
 }

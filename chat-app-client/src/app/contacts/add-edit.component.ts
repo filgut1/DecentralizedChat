@@ -49,9 +49,9 @@ export class AddEditComponent implements OnInit {
         if (this.form.invalid) {
             return;
         }
-        const res = await this.db.$findUserByAlias(this.f.alias.value);
+        const res = await this.db.findUserByAlias(this.f.alias.value);
         if (res) {
-            await this.db.addContact(this.f.alias.value, res.epub);
+            await this.db.addContact(this.f.alias.value);
             this.router.navigate(['../../'], { relativeTo: this.route });
         } else {
             this.alertService.error('User not found');

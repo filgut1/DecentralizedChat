@@ -19,7 +19,7 @@ export class ListComponent implements OnInit {
         this.db.on$(this.db.gunUser.get('contacts')).subscribe(res => {
             Object.keys(res).forEach(async path => {
               const user = this.db.gun.get(path);
-              this.contacts.set(path, (await this.db.$once(user)).epub);
+              this.contacts.set(path, (await this.db.once(user)).epub);
             });
           });
     }

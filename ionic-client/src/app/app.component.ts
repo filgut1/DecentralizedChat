@@ -20,7 +20,7 @@ export class AppComponent implements OnInit {
       if (this.user && !this.db.isLoggedIn()) {
           this.loading = true;
           try {
-            await this.db.$onAuth();
+            await this.db.onAuth();
           } catch (err) {
           }
           this.loading = false;

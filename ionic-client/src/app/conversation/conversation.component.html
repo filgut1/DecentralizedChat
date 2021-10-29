@@ -6,7 +6,7 @@
         </ion-title>
     </ion-toolbar>
 </ion-header>
-<ion-content  #scrollBottom>
+<ion-content>
     <ion-grid *ngIf="asyncConvo$ | async as asyncConvo">
         <ion-row *ngFor="let message of asyncConvo; let i = index;  trackBy: trackByUuid" class="message" [ngClass]="{
             'ion-align-self-start': isReceivedMessage(message), 

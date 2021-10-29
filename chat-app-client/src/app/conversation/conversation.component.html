@@ -1,20 +1,22 @@
 <div class="selected-user">
-    <span class="name">{{currentConvo.alias}}</span>
+    <span class="name">{{currentConvo?.alias}}</span>
 </div>
 <div class="chat-container">
     <ul class="chat-box chatContainerScroll" #scrollBottom>
-        <li *ngFor="let message of conversation" [ngClass]="{'chat-left': isReceivedMessage(message), 'chat-right': !isReceivedMessage(message)}">
-            <div *ngIf="isReceivedMessage(message)" class="chat-avatar">
-                <img src="https://cdn2.iconfinder.com/data/icons/rcons-user/32/male-shadow-circle-512.png">
-            </div>
-            <div class="chat-text">
-                {{message.message}}
-                <div class="chat-hour">{{message.ts | date:'shortTime'}}<span class="fa fa-check-circle"></span></div>
-            </div>
-            <div *ngIf="!isReceivedMessage(message)" class="chat-avatar">
-                <img src="https://cdn2.iconfinder.com/data/icons/rcons-user/32/male-shadow-circle-512.png">
-            </div>
-        </li>
+        <ng-container *ngIf="asyncConvo$ | async as asyncConvo">
+            <li *ngFor="let message of asyncConvo let i = index;  trackBy: trackByUuid" [ngClass]="{'chat-left': isReceivedMessage(message), 'chat-right': !isReceivedMessage(message)}">
+                <div *ngIf="isReceivedMessage(message)" class="chat-avatar">
+                    <img src="https://cdn2.iconfinder.com/data/icons/rcons-user/32/male-shadow-circle-512.png">
+                </div>
+                <div class="chat-text">
+                    {{message.message}}
+                    <div class="chat-hour">{{message.ts | date:'shortTime'}}<span class="fa fa-check-circle"></span></div>
+                </div>
+                <div *ngIf="!isReceivedMessage(message)" class="chat-avatar">
+                    <img src="https://cdn2.iconfinder.com/data/icons/rcons-user/32/male-shadow-circle-512.png">
+                </div>
+            </li>
+        </ng-container>
     </ul>
     <form class="form-group mt-3 mb-0"
         (ngSubmit)="sendMessage()">

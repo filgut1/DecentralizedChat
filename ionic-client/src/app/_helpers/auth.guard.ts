@@ -15,7 +15,7 @@ export class AuthGuard implements CanActivate {
 
     async canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
         try {
-            const user = this.accountService.userValue || await this.db.$onAuth();
+            const user = this.accountService.userValue || await this.db.onAuth();
             if (user) {
                 // authorised so return true
                 return true;

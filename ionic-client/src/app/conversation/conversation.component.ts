@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { GunDB } from '@app/_services';
 import { User } from '@app/_models';
 import { AccountService } from '@app/_services';
-import { ThisReceiver } from '@angular/compiler';
+import { IonContent } from '@ionic/angular'
 
 @Component({
   selector: 'app-conversation',
@@ -12,14 +12,15 @@ import { ThisReceiver } from '@angular/compiler';
   styleUrls: ['./conversation.component.less']
 })
 export class ConversationComponent implements OnInit, AfterViewChecked  {
-  @ViewChild('scrollBottom') scrollBottom:any;
+  @ViewChild(IonContent, { static: false }) scrollBottom: IonContent;
   public loading: Boolean = false;
   public messageContent: String = '';
   public user: User;
-  public conversation: Array<any>;
+  public conversation: Array<any> = [];
   public asyncConvo$ = new Subject<any[]>();
   public messagesSubscription: Subscription;
   public messagesSubscriber: Subscriber<any>;
+  private members: Array<any> = [];
   @Input() currentConvo: any;
   constructor(
     private db: GunDB,
@@ -32,41 +33,24 @@ export class ConversationComponent implements OnInit, AfterViewChecked  {
 
   async ngOnInit() {
     this.currentConvo = this.router.getCurrentNavigation().extras.state;
-    const epub = this.currentConvo.epub;
-    this.loading = true;
-    const [msgPathsFrom, msgPathsTo] = await Promise.all([
-      this.db.$once(this.db.messagesFrom(epub)),
-      this.db.$once(this.db.messagesTo(epub)),
-    ]);
-
-    // Create a flattened array of message paths 
-    const msgPaths = [].concat.apply([], [
-      ...Object.values(msgPathsFrom), 
-      ...Object.values(msgPathsTo)]);
-    // Need to load and sort existing messages first
-    this.conversation = await this.loadMessages(msgPaths);
-    this.asyncConvo$.next(this.conversation);
-    this.cdr.detectChanges();  
-    // this.conversation = [];
-    this.loading = false;
-
-
-    let stopped = false;
-    this.db.messagesFrom(epub).map().once(async (data, key, at, ev) => {
-      if (stopped) {
-        return ev.off()
-    }
-      const res = await this.db.decryptMessage(data);
-      // Check for duplicate messages just in case
-      if (!this.conversation.some(e => e.uuid === res.uuid)) {
-        this.conversation.push({
-          message: res.message,
-          ts: res.ts,
-          from:res.from
-        });
-        this.asyncConvo$.next([...this.conversation]);
-        this.cdr.detectChanges();    
+    this.members = await this.db.getConvoMembers(this.currentConvo.members['#']);
+ 
+    this.db.messagesObservable(this.currentConvo.uuid)
+    .subscribe(async (message: any) => {
+      let res;
+      if (message.fromEpub === this.db.myEpub) {
+        res = await this.db.decryptMyOwnMessage(message);
+      } else {
+        res = await this.db.decryptMessage(message);
       }
+      this.conversation.push({
+        message: res.message,
+        ts: res.ts,
+        from: res.from
+      });
+      this.conversation.sort((a, b) => a.ts - b.ts);
+      this.asyncConvo$.next([...this.conversation]);
+      this.scrollToBottom();
     });
   }
 
@@ -84,38 +68,18 @@ export class ConversationComponent implements OnInit, AfterViewChecked  {
 
   scrollToBottom(): void {
     try {
-        this.scrollBottom.scrollToBottom(500);
+        this.scrollBottom.scrollToBottom(300);
     } catch(err) { }
-  }
-
-  async loadMessages(messages) {
-    const decryptPromises = [];
-    for (let message of messages) {
-      message = await this.db.$once(this.db.gun.get(message['#']));
-      if (this.isReceivedMessage(message)) {
-        decryptPromises.push(this.db.decryptMessage(message));
-      } else {
-        decryptPromises.push(this.db.decryptMyOwnMessage(message));
-      }
-    }
-    const final = await Promise.all(decryptPromises);
-    return final.sort((a, b) => a.ts - b.ts);
   }
 
   sendMessage() {
     console.log(this.messageContent);
-    const ts = (new Date()).getTime();
+    const ts = new Date().getTime();
     if (this.currentConvo) {
-      this.db.sendMessage(this.currentConvo.epub, this.currentConvo.alias, this.messageContent, ts);
-      this.conversation.push({
-          from: this.db.myAlias,
-          ts: ts,
-          message: this.messageContent
-      });
-      this.asyncConvo$.next(this.conversation);
+      this.db.sendMessage(this.currentConvo, this.members, this.messageContent, ts);
       this._clearChat();
     }
-  }
+  }  
 
   isReceivedMessage(message) {
     return message && this.user.alias !== message.from;
