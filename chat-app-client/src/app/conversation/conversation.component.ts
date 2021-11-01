@@ -41,6 +41,8 @@ export class ConversationComponent implements OnInit, AfterViewChecked  {
   }
 
   async ngOnChanges(changes: SimpleChanges) {
+    this.conversation = [];
+    this.asyncConvo$.next([...this.conversation])
     if (changes.currentConvo.currentValue) {
       this.members = await this.db.getConvoMembers(this.currentConvo.members['#']);
    

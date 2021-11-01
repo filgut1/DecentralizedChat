@@ -23,14 +23,6 @@ export class HomeComponent {
         this.user = this.accountService.userValue;
     }
 
-    async newChat() {
-        const modal = await this.modalController.create({
-            component: AddEditComponent,
-            swipeToClose: true
-        });
-        return await modal.present();
-    }
-
     logout() {
         this.accountService.logout();        
     }

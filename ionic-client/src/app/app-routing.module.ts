@@ -1,15 +1,14 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
-import { HomeComponent } from './home';
-import { ConversationComponent } from '@app/conversation/conversation.component';
 import { AuthGuard } from './_helpers';
 import { LoginComponent } from './account/login.component';
 import { RegisterComponent } from './account/register.component';
 
+const homeModule = () => import('./home/home.module').then(x => x.HomeModule);
+
 const routes: Routes = [
-    { path: '', component: HomeComponent, canActivate: [AuthGuard] },
-    { path: 'conversation', component: ConversationComponent, canActivate: [AuthGuard] },
+    { path: '', loadChildren: homeModule, canActivate: [AuthGuard] },
     { path: 'login', component: LoginComponent },
     { path: 'register', component: RegisterComponent },
 

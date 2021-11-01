@@ -1,19 +1,15 @@
 ﻿<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
 
 <ion-app>
-    <ion-header>
-        <ion-toolbar>
-            <ion-buttons slot="end">
-                <ion-button (click)="newChat()">
-                    <ion-icon name="create-outline"></ion-icon>
-                </ion-button>
-            </ion-buttons>
-        </ion-toolbar>
-    </ion-header>
+    <ion-header></ion-header>
     <ion-content>
         <ion-tabs>
             <ion-tab-bar slot="bottom">
-                <ion-tab-button tab="">
+                <ion-tab-button tab="contacts">
+                    <ion-icon name="people-outline"></ion-icon>
+                    <ion-label>Contacts</ion-label>
+                </ion-tab-button>   
+                <ion-tab-button tab="chats">
                     <ion-icon name="chatbox-outline"></ion-icon>
                     <ion-label>Chats</ion-label>
                     <ion-badge>6</ion-badge>
@@ -24,9 +20,5 @@
                 </ion-tab-button>
             </ion-tab-bar>
         </ion-tabs>
-        <form class="input-group">
-            <ion-searchbar></ion-searchbar>
-        </form>
-        <app-chats [(currentConvo)]="currentConvo" (curentConvoChange)="currentConvo=$event"></app-chats>  
     </ion-content>
 </ion-app>

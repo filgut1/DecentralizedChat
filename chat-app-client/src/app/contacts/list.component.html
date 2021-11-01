@@ -8,8 +8,8 @@
         </tr>
     </thead>
     <tbody>
-        <tr *ngFor="let contact of contacts.keys()">
-            <td>{{contact}}</td>
+        <tr *ngFor="let contact of contacts">
+            <td>{{contact.alias}}</td>
             <td style="white-space: nowrap">
                 <a routerLink="edit/{{contact.id}}" class="btn btn-sm btn-primary mr-1">Message</a>
                 <button (click)="deleteContact(contact.id)" class="btn btn-sm btn-danger btn-delete-contact" [disabled]="contact.isDeleting">

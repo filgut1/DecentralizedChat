@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, SimpleChanges, AfterViewChecked, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
-import { Observable, Subject, Subscriber, Subscription  } from 'rxjs';
+import { combineLatest, merge, Observable, Subject, Subscriber, Subscription  } from 'rxjs';
 import { Router } from '@angular/router';
 import { GunDB } from '@app/_services';
 import { User } from '@app/_models';
@@ -33,9 +33,22 @@ export class ConversationComponent implements OnInit, AfterViewChecked  {
 
   async ngOnInit() {
     this.currentConvo = this.router.getCurrentNavigation().extras.state;
-    this.members = await this.db.getConvoMembers(this.currentConvo.members['#']);
- 
-    this.db.messagesObservable(this.currentConvo.uuid)
+    
+    merge(
+      ...this.currentConvo.members.map(m => this.db.messagesObservable2(this.currentConvo.uuid, m.pub))
+    ).subscribe(async (message: any) => {
+      const res = await this.db.decryptMessage3(this.currentConvo.uuid, message);
+      this.conversation.push({
+        message: res.message,
+        ts: res.ts,
+        from: res.from
+      });
+      this.conversation.sort((a, b) => a.ts - b.ts);
+      this.asyncConvo$.next([...this.conversation]);
+      this.scrollToBottom();
+    });
+
+    /* this.db.messagesObservable(this.currentConvo.uuid)
     .subscribe(async (message: any) => {
       let res;
       if (message.fromEpub === this.db.myEpub) {
@@ -52,6 +65,7 @@ export class ConversationComponent implements OnInit, AfterViewChecked  {
       this.asyncConvo$.next([...this.conversation]);
       this.scrollToBottom();
     });
+    */
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -76,7 +90,7 @@ export class ConversationComponent implements OnInit, AfterViewChecked  {
     console.log(this.messageContent);
     const ts = new Date().getTime();
     if (this.currentConvo) {
-      this.db.sendMessage(this.currentConvo, this.members, this.messageContent, ts);
+      this.db.sendMessage3(this.currentConvo, this.messageContent, ts);
       this._clearChat();
     }
   }  

@@ -40,9 +40,4 @@ export class AccountService {
     register(user: User) {
         return this.gunDB.createUser(user);
     }
-
-
-    getCurrentUserProfile() {
-        return this.gunDB.getCurrentUserProfile();
-    }
 }
