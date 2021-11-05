@@ -1,0 +1,43 @@
+﻿<ion-header>
+    <ion-toolbar>
+        <ion-title>{{title}}</ion-title>
+    </ion-toolbar>
+</ion-header>
+<ion-content>
+    <ion-grid fixed="true">
+        <ion-row>
+            <form [formGroup]="form" (ngSubmit)="onSubmit()" #addEditForm="ngForm">
+                <ion-item *ngIf="form.contains('alias')">
+                    <ion-label>Alias</ion-label>
+                    <ion-input type="text" formControlName="alias"></ion-input>
+                </ion-item>
+
+                <ion-item *ngIf="form.contains('name')">
+                    <ion-label>Chat name</ion-label>
+                    <ion-input type="text" formControlName="name"></ion-input>
+                </ion-item>
+
+                <ion-item *ngIf="form.contains('uuid')">
+                    <ion-input type="text" formControlName="uuid"></ion-input>
+                </ion-item>
+            </form>
+        </ion-row>
+    </ion-grid>
+    <ion-list *ngIf="asyncContacts | async as contacts">
+        <ion-list-header>
+           Select members
+        </ion-list-header>
+        <ion-item *ngFor="let contact of contactCheckbox">
+            <ion-checkbox slot="start" [(ngModel)]="contact.isChecked"></ion-checkbox>
+            <ion-label>{{contact.val.alias}}</ion-label>
+        </ion-item>
+    </ion-list>
+</ion-content>
+<ion-footer>
+    <ion-toolbar>
+        <ion-button expand="block" type="submit" [disabled]="!form.valid"
+            (click)="addEditForm.ngSubmit.emit()">
+            Submit
+        </ion-button>
+    </ion-toolbar>
+</ion-footer>

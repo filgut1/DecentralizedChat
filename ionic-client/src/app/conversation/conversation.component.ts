@@ -1,5 +1,6 @@
-import { Component, Input, OnInit, SimpleChanges, AfterViewChecked, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
-import { combineLatest, merge, Observable, Subject, Subscriber, Subscription  } from 'rxjs';
+import { Component, Input, OnInit, SimpleChanges, AfterViewChecked, ViewChild, OnDestroy } from '@angular/core';
+import { merge, Subject, Subscriber, Subscription  } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { GunDB } from '@app/_services';
 import { User } from '@app/_models';
@@ -11,7 +12,7 @@ import { IonContent } from '@ionic/angular'
   templateUrl: './conversation.component.html',
   styleUrls: ['./conversation.component.less']
 })
-export class ConversationComponent implements OnInit, AfterViewChecked  {
+export class ConversationComponent implements OnInit, OnDestroy {
   @ViewChild(IonContent, { static: false }) scrollBottom: IonContent;
   public loading: Boolean = false;
   public messageContent: String = '';
@@ -20,13 +21,13 @@ export class ConversationComponent implements OnInit, AfterViewChecked  {
   public asyncConvo$ = new Subject<any[]>();
   public messagesSubscription: Subscription;
   public messagesSubscriber: Subscriber<any>;
+  private readonly destroy = new Subject();
   private members: Array<any> = [];
   @Input() currentConvo: any;
   constructor(
     private db: GunDB,
     private accountService: AccountService,
     private router: Router,
-    private cdr: ChangeDetectorRef,
   ) { 
     this.user = this.accountService.userValue;
   }
@@ -35,27 +36,11 @@ export class ConversationComponent implements OnInit, AfterViewChecked  {
     this.currentConvo = this.router.getCurrentNavigation().extras.state;
     
     merge(
-      ...this.currentConvo.members.map(m => this.db.messagesObservable2(this.currentConvo.uuid, m.pub))
-    ).subscribe(async (message: any) => {
-      const res = await this.db.decryptMessage3(this.currentConvo.uuid, message);
-      this.conversation.push({
-        message: res.message,
-        ts: res.ts,
-        from: res.from
-      });
-      this.conversation.sort((a, b) => a.ts - b.ts);
-      this.asyncConvo$.next([...this.conversation]);
-      this.scrollToBottom();
-    });
-
-    /* this.db.messagesObservable(this.currentConvo.uuid)
+      ...this.currentConvo.members.map(m => 
+        this.db.messagesObservable(this.currentConvo.uuid, m.pub))
+    ).pipe(takeUntil(this.destroy))
     .subscribe(async (message: any) => {
-      let res;
-      if (message.fromEpub === this.db.myEpub) {
-        res = await this.db.decryptMyOwnMessage(message);
-      } else {
-        res = await this.db.decryptMessage(message);
-      }
+      const res = await this.db.decryptMessage(this.currentConvo.uuid, message);
       this.conversation.push({
         message: res.message,
         ts: res.ts,
@@ -65,32 +50,23 @@ export class ConversationComponent implements OnInit, AfterViewChecked  {
       this.asyncConvo$.next([...this.conversation]);
       this.scrollToBottom();
     });
-    */
   }
-
-  ngOnChanges(changes: SimpleChanges) {
-    this.scrollToBottom();
-  }
-
-  ngAfterViewChecked() {        
-    this.scrollToBottom();    
-  } 
 
   ionViewDidEnter(){
     this.scrollToBottom();
   }
 
   scrollToBottom(): void {
-    try {
-        this.scrollBottom.scrollToBottom(300);
-    } catch(err) { }
+        setTimeout(() => {
+      this.scrollBottom.scrollToBottom(300);
+   }, 1000);
   }
 
   sendMessage() {
     console.log(this.messageContent);
     const ts = new Date().getTime();
     if (this.currentConvo) {
-      this.db.sendMessage3(this.currentConvo, this.messageContent, ts);
+      this.db.sendMessage(this.currentConvo, this.messageContent, ts);
       this._clearChat();
     }
   }  
@@ -107,6 +83,11 @@ export class ConversationComponent implements OnInit, AfterViewChecked  {
 
   trackByUuid(_index: number, item: any) {
     return item.uuid;
+  }
+
+  ngOnDestroy() {
+    this.destroy.next();
+    this.destroy.complete();
   }
 
   private _clearChat() {

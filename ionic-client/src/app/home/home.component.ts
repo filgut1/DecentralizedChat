@@ -2,7 +2,6 @@
 import { User } from '@app/_models';
 import { AccountService } from '@app/_services';
 import { ModalController } from '@ionic/angular';
-import { AddEditComponent } from '@app/contacts/add-edit.component';
 
 @Component({ 
     templateUrl: 'home.component.html'
