@@ -4,16 +4,12 @@
 <div class="chat-container">
     <ul class="chat-box chatContainerScroll" #scrollBottom>
         <ng-container *ngIf="asyncConvo$ | async as asyncConvo">
-            <li *ngFor="let message of asyncConvo let i = index;  trackBy: trackByUuid" [ngClass]="{'chat-left': isReceivedMessage(message), 'chat-right': !isReceivedMessage(message)}">
-                <div *ngIf="isReceivedMessage(message)" class="chat-avatar">
-                    <img src="https://cdn2.iconfinder.com/data/icons/rcons-user/32/male-shadow-circle-512.png">
-                </div>
+            <li *ngFor="let message of asyncConvo$   | async let i = index;  trackBy: trackByUuid" 
+                [ngClass]="{'chat-left': isReceivedMessage(message), 'chat-right': !isReceivedMessage(message), 'continued_message': checkLastMessage(i)}">
                 <div class="chat-text">
+                    <div *ngIf="!checkLastMessage(i) && isReceivedMessage(message)" class="chat-name">{{ message.from }}</div>
                     {{message.message}}
                     <div class="chat-hour">{{message.ts | date:'shortTime'}}<span class="fa fa-check-circle"></span></div>
-                </div>
-                <div *ngIf="!isReceivedMessage(message)" class="chat-avatar">
-                    <img src="https://cdn2.iconfinder.com/data/icons/rcons-user/32/male-shadow-circle-512.png">
                 </div>
             </li>
         </ng-container>
@@ -25,32 +21,3 @@
         <button type="submit">Send</button>
     </form>
 </div>
-
-
-<!--
-<div *ngIf="loading" class="loader">
-    <p></p>
-    <h4>Loading</h4>
-</div>
-  
-<ul *ngIf="!loading" class="chat">
-    
-    <li *ngFor="let message of conversation" [ngClass]="{'you': message.received, 'me': !message.received}">
-        <div class="entete">
-            <span class="status green"></span>
-            <h2>Vincent</h2>
-            <h3>10:12AM, Today</h3>
-        </div>
-        <div class="triangle"></div>
-        <div class="message">
-            {{message.message}}
-        </div>
-    </li>
-</ul>
-<footer>
-    <textarea [(ngModel)]="messageContent" class="form-control" name="messageContent" placeholder='Enter a message'></textarea>
-    <img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1940306/ico_picture.png" alt="">
-    <img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1940306/ico_file.png" alt="">
-    <a (click)="sendMessage()" href="#">Send</a>
-</footer>
--->

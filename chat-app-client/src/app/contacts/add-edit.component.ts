@@ -31,8 +31,7 @@ export class AddEditComponent implements OnInit {
         });
 
         if (!this.isAddMode) {
-            this.accountService.getCurrentUserProfile()
-                .then(x => this.form.patchValue(x));
+            this.form.patchValue(this.accountService.userValue);
         }
     }
 
@@ -49,12 +48,11 @@ export class AddEditComponent implements OnInit {
         if (this.form.invalid) {
             return;
         }
-        const res = await this.db.findUserByAlias(this.f.alias.value);
-        if (res) {
-            await this.db.addContact(this.f.alias.value);
-            this.router.navigate(['../../'], { relativeTo: this.route });
-        } else {
-            this.alertService.error('User not found');
+        try {
+            await this.db.userExists(this.f.alias.value);
+            await this.db.addContactByAlias(this.f.alias.value);
+        } catch(err) {
+            this.alertService.error(err);
         }
         this.loading = false;
     }

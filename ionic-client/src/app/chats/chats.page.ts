@@ -22,21 +22,17 @@ export class ChatsPage implements OnInit, OnDestroy  {
   constructor(
     private db: GunDB,
     public modalController: ModalController,
-    public navCtrl: NavController
+    private navCtrl: NavController
   ) { 
     this.chats = new Map();
   }
 
   ngOnInit() {
-    this.db.on$(this.db.myChats.map())
+    this.db.myChatsObservable()
     .pipe(takeUntil(this.destroy))
     .subscribe(chat => {
       this._updateChats(chat);
     });
-  }
-
-  async ionViewDidEnter() {
-    await this._loadChats();
   }
 
   async doRefresh(event) {
@@ -52,7 +48,7 @@ export class ChatsPage implements OnInit, OnDestroy  {
   }
 
   private async _updateChats(chat) {
-    if (chat.members) {
+    if (!Array.isArray(chat.members)) {
       chat.members = await this.db.getConvoMembers(chat.members['#']);
     } 
     if (chat.uuid) {
@@ -73,7 +69,7 @@ export class ChatsPage implements OnInit, OnDestroy  {
           'type': 'create'
         }
     });
-    return await modal.present();
+    await modal.present();
   }
 
   async joinChat() {
@@ -84,15 +80,7 @@ export class ChatsPage implements OnInit, OnDestroy  {
         'type': 'join'
       }
     });
-    return await modal.present();
-  }
-
-  getChatName(chat) {
-    if (chat.name) return chat.name
-    else {
-      const res = chat.members && chat.members.find(e => e.alias !== this.db.myAlias);
-      return res && res.alias || 'unnamed chat';
-    }
+    await modal.present();
   }
 
   trackByUuid(_index: number, item: any) {

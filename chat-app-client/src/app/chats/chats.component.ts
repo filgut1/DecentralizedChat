@@ -1,7 +1,8 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, OnDestroy } from '@angular/core';
 import { GunDB } from '@app/_services';
 import { on$ } from '@app/_helpers';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 
 @Component({
@@ -9,13 +10,14 @@ import { Observable } from 'rxjs';
   templateUrl: './chats.component.html',
   styleUrls: ['./chats.component.less']
 })
-export class ChatsComponent implements OnInit {
+export class ChatsComponent implements OnInit, OnDestroy {
   @Input() currentConvo: any;
   @Output() currentConvoChange = new EventEmitter<any>();
   public chats: Map<any, any>;
-  private contacts$: Observable<any>;
   public searchString: String;
   public loading: Boolean = false;
+  public asyncChats = new Subject<any>();
+  private readonly destroy = new Subject();
 
   constructor(
     private db: GunDB
@@ -24,9 +26,21 @@ export class ChatsComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.db.on$(this.db.myConversations.map()).subscribe(convo => {
-      this.chats.set(convo.uuid, convo);
+    this.db.myChatsObservable()
+    .pipe(takeUntil(this.destroy))
+    .subscribe(chat => {
+      this._updateChats(chat);
     });
+  }
+
+  private async _updateChats(chat) {
+    if (!Array.isArray(chat.members)) {
+      chat.members = await this.db.getConvoMembers(chat.members['#']);
+    } 
+    if (chat.uuid) {
+      this.chats.set(chat.uuid, chat);
+      this.asyncChats.next(Array.from(this.chats.keys()));
+    }
   }
 
   async loadConvo(user) {
@@ -35,5 +49,10 @@ export class ChatsComponent implements OnInit {
 
   get chatKeys() {
     return Array.from(this.chats.keys());
+  }
+
+  ngOnDestroy() {
+    this.destroy.next();
+    this.destroy.complete();
   }
 }

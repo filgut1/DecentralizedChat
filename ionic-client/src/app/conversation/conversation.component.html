@@ -12,8 +12,8 @@
             'ion-align-self-start': isReceivedMessage(message), 
             'ion-align-self-end': !isReceivedMessage(message)}">
 
-            <ion-col size="9" *ngIf="message && isReceivedMessage(message)"
-                [ngClass]="{'my_message': !isReceivedMessage(message), 'other_message': isReceivedMessage(message), 'continued_message': checkLastMessage(i)}">
+            <ion-col size="9" *ngIf="message && isReceivedMessage(message)" class="other_message"
+                [ngClass]="{ 'continued_message': checkLastMessage(i)}">
                 
                 <span *ngIf="!checkLastMessage(i)" class="user_name">{{ message.from }}</span><br>
                 <span>{{ message.message }}</span>
@@ -21,9 +21,8 @@
             </ion-col>
 
             <ion-col offset="3" size="9" *ngIf="message && !isReceivedMessage(message)"
-                [ngClass]="{'my_message': !isReceivedMessage(message), 'other_message': isReceivedMessage(message), 'continued_message': checkLastMessage(i)}">
-                
-                <span *ngIf="!checkLastMessage(i)" class="user_name">{{ message.from }}</span><br>
+                class="my_message"
+                [ngClass]="{'continued_message': checkLastMessage(i)}">
                 <span>{{ message.message }}</span>
                 <div class="time">{{message.ts | date:'shortTime'}}</div>
             </ion-col>

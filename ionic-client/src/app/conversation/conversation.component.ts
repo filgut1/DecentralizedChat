@@ -3,7 +3,7 @@ import { merge, Subject, Subscriber, Subscription  } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { GunDB } from '@app/_services';
-import { User } from '@app/_models';
+import { Message, User } from '@app/_models';
 import { AccountService } from '@app/_services';
 import { IonContent } from '@ionic/angular'
 
@@ -17,12 +17,13 @@ export class ConversationComponent implements OnInit, OnDestroy {
   public loading: Boolean = false;
   public messageContent: String = '';
   public user: User;
-  public conversation: Array<any> = [];
+  public conversation = new Map<string, any>();
   public asyncConvo$ = new Subject<any[]>();
   public messagesSubscription: Subscription;
   public messagesSubscriber: Subscriber<any>;
   private readonly destroy = new Subject();
   private members: Array<any> = [];
+  dmContact;
   @Input() currentConvo: any;
   constructor(
     private db: GunDB,
@@ -34,22 +35,49 @@ export class ConversationComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.currentConvo = this.router.getCurrentNavigation().extras.state;
-    
-    merge(
-      ...this.currentConvo.members.map(m => 
-        this.db.messagesObservable(this.currentConvo.uuid, m.pub))
-    ).pipe(takeUntil(this.destroy))
-    .subscribe(async (message: any) => {
-      const res = await this.db.decryptMessage(this.currentConvo.uuid, message);
-      this.conversation.push({
-        message: res.message,
-        ts: res.ts,
-        from: res.from
+    if (this.currentConvo.type === 'group') {
+      merge(
+        ...this.currentConvo.members.map(m => 
+          this.db.messagesObservable(this.currentConvo.uuid, m.pub))
+      ).pipe(takeUntil(this.destroy))
+      .subscribe(async (messages: Array<Message>) => {
+        for (const message of Object.values(messages)) {
+          const res = await this.db.decryptMessage(this.currentConvo.uuid, message);
+          this.conversation.set(message.uuid, {
+            message: res.message,
+            ts: res.ts,
+            from: res.from
+          });
+        }
+        this.conversation = new Map([...this.conversation.entries()].sort((a, b) => a[1].ts - b[1].ts));
+        this.asyncConvo$.next([...this.conversation.values()]);
+        this.scrollToBottom();
       });
-      this.conversation.sort((a, b) => a.ts - b.ts);
-      this.asyncConvo$.next([...this.conversation]);
-      this.scrollToBottom();
-    });
+    } else {
+      this.dmContact = this.currentConvo.members.filter(m => m.pub && m.pub !== this.user.pub)[0];
+      merge(
+        this.db.messagesObservable(this.dmContact.epub, this.user.pub),
+        this.db.messagesObservable(this.user.epub, this.dmContact.pub)
+      ).pipe(takeUntil(this.destroy))
+      .subscribe(async (messages: Array<Message>) => {
+        for (const message of Object.values(messages)) {
+          let res;
+          if (message.from === this.user.alias) {
+            res = await this.db.decryptMyOwnMessage(message);
+          } else {
+            res = await this.db.decryptDirectMessage(this.dmContact.epub, message);
+          }
+          this.conversation.set(message.uuid, {
+            message: res.message,
+            ts: res.ts,
+            from: res.from
+          });
+        }
+        this.conversation = new Map([...this.conversation.entries()].sort((a, b) => a[1].ts - b[1].ts));
+        this.asyncConvo$.next([...this.conversation.values()]);
+        this.scrollToBottom();
+      });
+    }
   }
 
   ionViewDidEnter(){
@@ -65,8 +93,11 @@ export class ConversationComponent implements OnInit, OnDestroy {
   sendMessage() {
     console.log(this.messageContent);
     const ts = new Date().getTime();
-    if (this.currentConvo) {
-      this.db.sendMessage(this.currentConvo, this.messageContent, ts);
+    if (this.currentConvo.type === 'group') {
+      this.db.sendGroupMessage(this.currentConvo, this.messageContent, ts);
+      this._clearChat();
+    } else {
+      this.db.sendDirectMessage(this.dmContact, this.messageContent, ts);
       this._clearChat();
     }
   }  
@@ -76,9 +107,8 @@ export class ConversationComponent implements OnInit, OnDestroy {
   }
 
   checkLastMessage(i) {
-    return this.conversation && i > 0 && 
-      this.conversation.length > 1 &&
-      this.conversation[i - 1].from === this.conversation[i].from;
+    return i > 0 && this.conversation.size > 1 &&
+      [...this.conversation.values()][i - 1].from === [...this.conversation.values()][i].from;
   }
 
   trackByUuid(_index: number, item: any) {

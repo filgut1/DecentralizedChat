@@ -76,8 +76,7 @@ export class AddEditComponent implements OnInit {
             switch(this.type) {
                 case 'create':
                     members = this.contactCheckbox.map(c => c.isChecked ? c.val : undefined);
-                    const myProfile = await this.db.myProfile
-                    const chatUUID = await this.db.createNewChat([...members, myProfile], this.f.name.value);
+                    const chatUUID = await this.db.createNewChat(members, this.f.name.value);
                     this.f.uuid.setValue(chatUUID);
                     this.alertService.success('Create chat success.');
                     break;
@@ -91,7 +90,6 @@ export class AddEditComponent implements OnInit {
                     if (!members.some(m => m.pub === this.db.myPub)) {
                         throw new Error('You are not a member of this chat!');
                     }
-                    await this.db.addContactByPub(inviter);
                     await this.db.joinExistingChat(chatId, inviter, sharedSecret);
                     this.dismiss();
                     break;

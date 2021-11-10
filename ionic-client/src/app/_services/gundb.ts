@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { User } from '@app/_models';
-import { pick }  from 'underscore/underscore-esm';
 import { v4 } from 'uuid';
 import * as Gun from 'gun/gun';
 import { resolve } from 'node:dns';
 require('gun/lib/then.js');
 require('gun/sea');
-require('gun/lib/time.js');
+require('gun/lib/open.js');
+require('gun/lib/load.js');
 
 @Injectable({ providedIn: 'root' })
 export class GunDB {
@@ -111,15 +111,37 @@ export class GunDB {
             const chat = {
                 uuid,
                 name: chatName,
-                ts: new Date().getTime()
+                ts: new Date().getTime(),
+                type: 'group'
             }
-            
-            const chatNode = this.gunUser.get('chats').get(uuid).put(chat, ack => {
-                this.addMembersToChat(members, chatNode);
-                resolve(
-                    encodeURI(`https://fakelink?chatId=${uuid}&inviter=${this.myPub}&sharedSecret=${sharedSecret}`)
-                );
-            });
+            const myProfile = await this.myProfile;
+            const chatNode = this.gunUser.get('chats').get(uuid).put(chat);
+            await Promise.all([
+                [...members, myProfile].map(c => this.addMemberToChat(c, chatNode))
+            ]);
+            resolve(
+                encodeURI(`https://fakelink?chatId=${uuid}&inviter=${this.myPub}&sharedSecret=${sharedSecret}`)
+            );
+        });
+    }
+
+    async createDirectChat(contact) {
+        return new Promise(async resolve => {
+            const uuid = v4();
+            const chat = {
+                uuid,
+                name: contact.alias,
+                ts: new Date().getTime(),
+                type: 'direct'
+            }
+
+            const myProfile = await this.myProfile;
+
+            const chatNode = this.gunUser.get('chats').get(contact.epub).put(chat);
+            await Promise.all([
+                [myProfile, contact].map(c => this.addMemberToChat(c, chatNode))
+            ]);
+            resolve(true);
         });
     }
 
@@ -138,11 +160,13 @@ export class GunDB {
         });
     }
 
-    async addMembersToChat(members, chatNode) {
-        for (const member of members) {
-            const user = this.gun.user(member.pub).get('profile');
-            chatNode.get('members').set(user);
-        }
+    addMemberToChat(member, chatNode) {
+        return new Promise(resolve => {
+            const usr = this.gun.user(member.pub).get('profile');
+            chatNode.get('members').set(usr, ack => {
+                resolve(ack);
+            });
+        });
     }
 
     get myChats() {
@@ -175,7 +199,7 @@ export class GunDB {
     }
 
     getConvoMembers(ref) {
-        return this.gun.get(ref).then(this.cleanup).then(ref => this.nodeData(ref));
+        return this.gun.get(ref).then(refs => this.nodeData(refs));
     }
     
     userExists(alias): Promise<any> {
@@ -199,24 +223,40 @@ export class GunDB {
         return members;
     }
 
-    messagesObservable(uuid, pub, opts = {}) {
+    myContactsObservable() {
         return new Observable(o => {
-            let stopped = false;
-            this.gun.user(pub).get('chats').get(uuid).get('messages').map().once((data, key, at, ev) => {
-                if (stopped) {
-                    o.complete()
-                    return ev.off()
-                }
+            this.gunUser.get('contacts').map().on(data => {
                 o.next(this.cleanup(data));
-            }, opts);
+            });
             return () => {
-                // Caller unsubscribe
-                stopped = true
+                this.gunUser.get('contacts').off();
             }
         });
     }
 
-    async sendMessage(conversation, message, ts) {
+    myChatsObservable() {
+        return new Observable(o => {
+            this.gunUser.get('chats').map().on(data => {
+                o.next(this.cleanup(data));
+            });
+            return () => {
+                this.gunUser.get('chats').off();
+            }
+        });
+    }
+
+    messagesObservable(uuid, pub, opts = {}) {
+        return new Observable(o => {
+            this.gun.user(pub).get('chats').get(uuid).get('messages').open((data, key) => {
+                o.next(data);
+            }, opts);
+            return () => {
+                this.gun.user(pub).get('chats').get(uuid).get('messages').off();
+            }
+        });
+    }
+
+    async sendGroupMessage(conversation, message, ts) {
         if (this.isLoggedIn()) {
 
             const chatLink = this.gunUser.get('chatLinks').get(conversation.uuid);
@@ -234,15 +274,41 @@ export class GunDB {
                     ts,
                     uuid,
                     message: enc
-                }, ack => { 
-                    this.gunUser.get('chats').get(conversation.uuid).get('messages').set(msgNode); 
                 });
+            this.gunUser.get('chats').get(conversation.uuid).get('messages').set(msgNode); 
+        }
+    }
+
+    async sendDirectMessage(contact, message, ts) {
+        if (this.isLoggedIn()) {
+            const secret = await this.sea.secret(contact.epub, this.gunUser._.sea);
+            const enc = await this.sea.encrypt(message, secret);
+            const senderEnc = await this.sea.encrypt(message, this.gunUser._.sea);
+            const uuid = v4();
+
+            const msgNode = this.gun
+                .get(uuid)
+                .put({
+                    from: this.myAlias,
+                    ts,
+                    uuid,
+                    message: enc,
+                    senderEnc
+                });
+            this.gunUser.get('chats').get(contact.epub).get('messages').set(msgNode); 
         }
     }
 
     async decryptMyOwnMessage(messageObj) {
-        messageObj.message = await this.sea.decrypt(messageObj.encForMe, this.gunUser._.sea);
+        messageObj.message = await this.sea.decrypt(messageObj.senderEnc, this.gunUser._.sea);
         return messageObj;
+    }
+
+    async decryptDirectMessage(epub, messageObj) {
+        const msgCpy = Object.assign({}, messageObj);
+        const secret = await this.sea.secret(epub, this.gunUser._.sea);
+        msgCpy.message = await this.sea.decrypt(messageObj.message, secret);
+        return msgCpy;
     }
 
     async decryptMessage(chatId, messageObj) {
@@ -290,17 +356,11 @@ export class GunDB {
 
     on$(node, opts = {}): Observable<any> {
         return new Observable(o => {
-            let stopped = false
-            node.on((data, key, at, ev) => {
-                if (stopped) {
-                    o.complete()
-                    return ev.off()
-                }
+            node.on(data => {
                 o.next(this.cleanup(data));
             }, opts);
             return () => {
-                // Caller unsubscribe
-                stopped = true
+                node.off();
             }
         });
     }

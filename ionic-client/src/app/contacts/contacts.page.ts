@@ -1,23 +1,38 @@
-import { Component, OnInit } from '@angular/core';
-import { GunDB } from '@app/_services';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { AccountService, GunDB } from '@app/_services';
 import { Subject } from 'rxjs';
-import { ModalController } from '@ionic/angular';
+import { ModalController, NavController } from '@ionic/angular';
 import { AddEditComponent } from '@app/_components/add-edit.component';
+import { User } from '@app/_models';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-contacts',
   templateUrl: './contacts.page.html',
   styleUrls: ['./contacts.page.css'],
 })
-export class ContactsPage implements OnInit {
+export class ContactsPage implements OnInit, OnDestroy {
   public asyncContacts = new Subject<any>();
+  public user: User;
+  private readonly destroy = new Subject();
+  private contacts = new Map();
 
   constructor(
     private db: GunDB,
-    private modalController: ModalController
-  ) { }
+    private modalController: ModalController,
+    private navCtrl: NavController,
+    private accountService: AccountService
+  ) { 
+    this.user = this.accountService.userValue;
+   }
 
   ngOnInit() {
+    this.db.myContactsObservable()
+    .pipe(takeUntil(this.destroy))
+    .subscribe((contact: User) => {
+      this.contacts.set(contact.pub, contact);
+      this.asyncContacts.next([...this.contacts.values()]);
+    });
   }
 
   async ionViewDidEnter() {
@@ -37,12 +52,32 @@ export class ContactsPage implements OnInit {
       },
       swipeToClose: true
     });
-    return await modal.present();
+    await modal.present();
   }
 
   private async _loadContacts() {
     const contacts = await this.db.getAllContacts();
     this.asyncContacts.next([...contacts]);
+  }
+
+  async openDirectChat(contact) {
+    const directChat = await this.db.gunUser.get('chats').get(contact.epub).then();
+    if (!directChat) {
+      await this.db.createDirectChat(contact);
+      const chat = await this.db.gunUser.get('chats').get(contact.epub).then();
+      chat.members = [contact, this.user];
+      this.navCtrl.navigateForward(['conversation'], {state: chat});
+    } else {
+      if (!Array.isArray(directChat.members)) {
+        directChat.members = await this.db.getConvoMembers(directChat.members['#']);
+      } 
+      this.navCtrl.navigateForward(['conversation'], {state: directChat});
+    }
+  }
+
+  ngOnDestroy() {
+    this.destroy.next();
+    this.destroy.complete();
   }
 
 }

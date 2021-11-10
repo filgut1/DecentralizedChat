@@ -10,3 +10,14 @@ export interface UserProfile {
     pub: string;
     alias: string;
 }
+
+export interface Chat {
+
+}
+
+export interface Message {
+    uuid: string,
+    from: string,
+    ts: number,
+    message: string
+}
