@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter, OnDestroy } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { GunDB } from '@app/_services';
 import { on$ } from '@app/_helpers';
 import { Observable, Subject } from 'rxjs';
@@ -15,13 +15,13 @@ export class ChatsComponent implements OnInit, OnDestroy {
   @Output() currentConvoChange = new EventEmitter<any>();
   public chats: Map<any, any>;
   public searchString: String;
-  public loading: Boolean = false;
   public asyncChats = new Subject<any>();
   private readonly destroy = new Subject();
 
   constructor(
-    private db: GunDB
-  ) { 
+    private db: GunDB,
+    private cd: ChangeDetectorRef,
+) { 
     this.chats = new Map();
   }
 
@@ -34,17 +34,18 @@ export class ChatsComponent implements OnInit, OnDestroy {
   }
 
   private async _updateChats(chat) {
-    if (!Array.isArray(chat.members) && chat.members['#']) {
+    if (chat.members && !Array.isArray(chat.members) && chat.members['#']) {
       chat.members = await this.db.getConvoMembers(chat.members['#']);
     } 
     if (chat.uuid) {
       this.chats.set(chat.uuid, chat);
       this.asyncChats.next(Array.from(this.chats.keys()));
+      this.cd.detectChanges();
     }
   }
 
-  async loadConvo(user) {
-    this.currentConvoChange.emit(user);
+  async loadConvo(convo) {
+    this.currentConvoChange.emit(convo);
   }
 
   get chatKeys() {

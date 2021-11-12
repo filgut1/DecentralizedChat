@@ -49,7 +49,7 @@ export class ChatsPage implements OnInit, OnDestroy  {
   }
 
   private async _updateChats(chat) {
-    if (!Array.isArray(chat.members) && chat.members['#']) {
+    if (chat.members && !Array.isArray(chat.members) && chat.members['#']) {
       chat.members = await this.db.getConvoMembers(chat.members['#']);
     } 
     if (chat.uuid) {

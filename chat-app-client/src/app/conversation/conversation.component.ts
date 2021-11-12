@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, SimpleChanges, AfterViewChecked, ViewChild, ElementRef, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, OnInit, SimpleChanges, AfterViewChecked, ViewChild, ElementRef, OnDestroy, ChangeDetectorRef, OnChanges } from '@angular/core';
 import { merge, Observable, Subject, Subscriber, Subscription  } from 'rxjs';
 import { GunDB } from '@app/_services';
 import { Message, User } from '@app/_models';
@@ -10,16 +10,16 @@ import { takeUntil } from 'rxjs/operators';
   templateUrl: './conversation.component.html',
   styleUrls: ['./conversation.component.less']
 })
-export class ConversationComponent implements OnInit, OnDestroy, AfterViewChecked  {
+export class ConversationComponent implements OnDestroy, OnChanges, AfterViewChecked  {
   @ViewChild('scrollBottom') private scrollBottom: ElementRef;
   public loading: Boolean = false;
   public messageContent: String = '';
   public user: User;
   public conversation = new Map<any, any>();
-  public messagesSubscription: Subscription;
   public asyncConvo$ = new Subject<any[]>();
   public dmContact;
   private members: Array<any> = [];
+  private messagesSubscription: Subscription;
   private readonly destroy = new Subject();
   @Input() currentConvo: any;
   constructor(
@@ -28,10 +28,6 @@ export class ConversationComponent implements OnInit, OnDestroy, AfterViewChecke
     private cd: ChangeDetectorRef
   ) { 
     this.user = this.accountService.userValue;
-  }
-
-  ngOnInit(): void {
-
   }
 
   ngAfterViewChecked() {        
@@ -45,11 +41,15 @@ export class ConversationComponent implements OnInit, OnDestroy, AfterViewChecke
   }
 
   async ngOnChanges(changes: SimpleChanges) {
+    // Cleanup any previous subscriptions
+    if (this.messagesSubscription) {
+      this.messagesSubscription.unsubscribe();
+    }
     this.conversation = new Map();
     this.asyncConvo$.next([...this.conversation.values()]);
     if (changes.currentConvo.currentValue) {
       if (this.currentConvo.type === 'group') {
-        merge(
+        this.messagesSubscription = merge(
           ...this.currentConvo.members.map(m => 
             this.db.messagesObservable(this.currentConvo.uuid, m.pub))
         ).pipe(takeUntil(this.destroy))
@@ -69,7 +69,7 @@ export class ConversationComponent implements OnInit, OnDestroy, AfterViewChecke
         });
       } else {
         this.dmContact = this.currentConvo.members.filter(m => m.pub && m.pub !== this.user.pub)[0];
-        merge(
+        this.messagesSubscription = merge(
           this.db.messagesObservable(this.dmContact.epub, this.user.pub),
           this.db.messagesObservable(this.user.epub, this.dmContact.pub)
         ).pipe(takeUntil(this.destroy))
@@ -89,7 +89,7 @@ export class ConversationComponent implements OnInit, OnDestroy, AfterViewChecke
           }
           this.conversation = new Map([...this.conversation.entries()].sort((a, b) => a[1].ts - b[1].ts));
           this.asyncConvo$.next([...this.conversation.values()]);
-          this.cd.markForCheck();
+          this.cd.detectChanges();
           this.scrollToBottom();
         });
       }

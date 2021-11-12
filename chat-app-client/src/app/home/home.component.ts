@@ -1,4 +1,4 @@
-﻿import { Component, OnInit } from '@angular/core';
+﻿import { ChangeDetectorRef, Component, OnChanges, OnInit } from '@angular/core';
 import { User } from '@app/_models';
 import { AccountService } from '@app/_services';
 import { GunDB } from '@app/_services';
@@ -9,7 +9,7 @@ import { Router } from '@angular/router';
     templateUrl: 'home.component.html',
     styleUrls: ['./home.component.less']
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit, OnChanges  {
     user: User;
     public epub;
     public message;
@@ -21,9 +21,24 @@ export class HomeComponent {
     constructor(
         private accountService: AccountService,
         private db: GunDB, 
-        private router: Router
+        private router: Router,
+        private cd: ChangeDetectorRef,
     ) {
-        this.currentConvo = this.router.getCurrentNavigation().extras.state;
         this.user = this.accountService.userValue;
+        this.currentConvo = this.router.getCurrentNavigation() && 
+            this.router.getCurrentNavigation().extras.state;
     }
+
+    ngOnInit() {
+    }
+
+    ngOnChanges() {
+        debugger;
+    }
+
+    convoChange(convo) {
+        this.currentConvo = {...convo};
+        this.cd.detectChanges();
+    }
+
 }

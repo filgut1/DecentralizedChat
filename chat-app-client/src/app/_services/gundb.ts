@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { User } from '@app/_models';
 import { v4 } from 'uuid';
-import * as Gun from 'gun/gun';
 import { resolve } from 'node:dns';
+const GUN = require('gun/gun');
 require('gun/lib/then.js');
 require('gun/sea');
 require('gun/lib/open.js');
@@ -15,8 +15,8 @@ export class GunDB {
     readonly gunUser:any;
     readonly sea:any;
     constructor() {
-        this.gun = Gun('http://localhost:3001/gun');
-        this.sea = Gun.SEA;
+        this.gun = GUN('http://localhost:3001/gun');
+        this.sea = GUN.SEA;
         this.gunUser = this.gun.user();
         this.gunUser.recall({sessionStorage: true});
     }

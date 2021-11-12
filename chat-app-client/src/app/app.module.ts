@@ -8,7 +8,10 @@ import { AppComponent } from './app.component';
 import { AlertComponent } from './_components';
 import { HomeComponent } from './home';
 import { ChatsComponent } from './chats/chats.component';
-import { ConversationComponent } from './conversation/conversation.component';
+import { ConversationComponent } from './conversation/conversation.component';;
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
+;
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap'
 
 @NgModule({
     imports: [
@@ -16,6 +19,8 @@ import { ConversationComponent } from './conversation/conversation.component';
         ReactiveFormsModule,
         FormsModule,
         AppRoutingModule,
+        BrowserAnimationsModule,
+        NgbModule
     ],
     declarations: [
         AppComponent,
