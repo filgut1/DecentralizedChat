@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter, OnDestroy } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { GunDB } from '@app/_services';
 import { NavController } from '@ionic/angular';
@@ -21,8 +21,9 @@ export class ChatsPage implements OnInit, OnDestroy  {
 
   constructor(
     private db: GunDB,
+    private cd: ChangeDetectorRef,
+    private navCtrl: NavController,
     public modalController: ModalController,
-    private navCtrl: NavController
   ) { 
     this.chats = new Map();
   }
@@ -48,12 +49,13 @@ export class ChatsPage implements OnInit, OnDestroy  {
   }
 
   private async _updateChats(chat) {
-    if (!Array.isArray(chat.members)) {
+    if (!Array.isArray(chat.members) && chat.members['#']) {
       chat.members = await this.db.getConvoMembers(chat.members['#']);
     } 
     if (chat.uuid) {
       this.chats.set(chat.uuid, chat);
       this.asyncChats.next(Array.from(this.chats.keys()));
+      this.cd.detectChanges();
     }
   }
 

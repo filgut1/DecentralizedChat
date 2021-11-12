@@ -17,7 +17,7 @@ export class AppComponent implements OnInit {
   ) { this.accountService.user.subscribe(x => this.user = x);}
 
   async ngOnInit() {
-      if (this.user && !this.db.isLoggedIn()) {
+      if (this.user && !this.db.isLoggedIn) {
           this.loading = true;
           try {
             await this.db.onAuth();

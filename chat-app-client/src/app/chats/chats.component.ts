@@ -34,7 +34,7 @@ export class ChatsComponent implements OnInit, OnDestroy {
   }
 
   private async _updateChats(chat) {
-    if (!Array.isArray(chat.members)) {
+    if (!Array.isArray(chat.members) && chat.members['#']) {
       chat.members = await this.db.getConvoMembers(chat.members['#']);
     } 
     if (chat.uuid) {

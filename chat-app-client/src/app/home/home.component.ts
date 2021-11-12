@@ -3,6 +3,7 @@ import { User } from '@app/_models';
 import { AccountService } from '@app/_services';
 import { GunDB } from '@app/_services';
 import { on$ } from '@app/_helpers';
+import { Router } from '@angular/router';
 
 @Component({ 
     templateUrl: 'home.component.html',
@@ -19,8 +20,10 @@ export class HomeComponent {
 
     constructor(
         private accountService: AccountService,
-        private db: GunDB
+        private db: GunDB, 
+        private router: Router
     ) {
+        this.currentConvo = this.router.getCurrentNavigation().extras.state;
         this.user = this.accountService.userValue;
     }
 }

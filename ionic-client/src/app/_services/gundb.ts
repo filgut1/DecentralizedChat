@@ -21,7 +21,7 @@ export class GunDB {
         this.gunUser.recall({sessionStorage: true});
     }
 
-    isLoggedIn() {
+    get isLoggedIn() {
         return this.gunUser.is;
     }
 
@@ -69,7 +69,7 @@ export class GunDB {
 
     async addContactByAlias(alias) {
         return new Promise(async resolve => {
-            if (this.isLoggedIn()) {
+            if (this.isLoggedIn) {
                 const contact = await this.getUserByAlias(alias);
                 if (contact.length) {
                     const contactProfile = this.gun.user(contact[0].pub).get('profile');
@@ -84,7 +84,7 @@ export class GunDB {
 
     async addContactByPub(pub) {
         return new Promise(async resolve => {
-            if (this.isLoggedIn()) {
+            if (this.isLoggedIn) {
                 const contactProfile = this.gun.user(pub).get('profile');
                 this.gunUser.get('contacts').set(contactProfile, async ack => {
                     const profile = await contactProfile.then().then(this.cleanup)
@@ -203,7 +203,7 @@ export class GunDB {
     }
     
     userExists(alias): Promise<any> {
-        if (this.isLoggedIn()) {
+        if (this.isLoggedIn) {
             return new Promise(async(resolve, reject) => {
                 const res = await this.gun.get(`~@${alias}`).then();
                 if (res) {
@@ -257,7 +257,7 @@ export class GunDB {
     }
 
     async sendGroupMessage(conversation, message, ts) {
-        if (this.isLoggedIn()) {
+        if (this.isLoggedIn) {
 
             const chatLink = this.gunUser.get('chatLinks').get(conversation.uuid);
 
@@ -280,7 +280,7 @@ export class GunDB {
     }
 
     async sendDirectMessage(contact, message, ts) {
-        if (this.isLoggedIn()) {
+        if (this.isLoggedIn) {
             const secret = await this.sea.secret(contact.epub, this.gunUser._.sea);
             const enc = await this.sea.encrypt(message, secret);
             const senderEnc = await this.sea.encrypt(message, this.gunUser._.sea);
