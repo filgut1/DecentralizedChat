@@ -22,7 +22,7 @@ export class ConversationComponent implements OnInit, OnDestroy {
   public messagesSubscription: Subscription;
   public messagesSubscriber: Subscriber<any>;
   private readonly destroy = new Subject();
-  dmContact;
+  private dmContact;
   @Input() currentConvo: any;
   constructor(
     private db: GunDB,
@@ -51,7 +51,8 @@ export class ConversationComponent implements OnInit, OnDestroy {
             from: res.from
           });
         }
-        this.sortedMessages = [...conversation.values()].sort((a, b) => a.ts - b.ts);           
+        this.sortedMessages = [...conversation.values()]
+          .sort((a, b) => a.ts - b.ts);           
         this.cd.detectChanges();
       });
     } else {
@@ -75,7 +76,8 @@ export class ConversationComponent implements OnInit, OnDestroy {
             from: res.from
           });
         }
-        this.sortedMessages = [...conversation.values()].sort((a, b) => a.ts - b.ts);           
+        this.sortedMessages = [...conversation.values()]
+          .sort((a, b) => a.ts - b.ts);           
         this.cd.detectChanges();
       });
     }

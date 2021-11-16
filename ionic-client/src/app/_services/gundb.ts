@@ -256,17 +256,21 @@ export class GunDB {
         });
     }
 
-    async sendGroupMessage(conversation, message, ts) {
+    async sendGroupMessage(conversation, message, ts): Promise<void> {
         if (this.isLoggedIn) {
-
+            // Reference to the chat link Node
             const chatLink = this.gunUser.get('chatLinks').get(conversation.uuid);
 
+            // Get the shared secret encrypted by me and decrypt
             const ownerEncryptedSharedSecret = await chatLink.get('ownerEncryptedSharedSecret').then();
             const sharedSecret =  await this.sea.decrypt(ownerEncryptedSharedSecret, this.gunUser._.sea);
 
+            // Encrypt the message with the shared secret
             const enc = await this.sea.encrypt(message, sharedSecret);
             const uuid = v4();
 
+            // Create a new message, add a reference to it on
+            // the chat node
             const msgNode = this.gunUser.get('messages')
                 .get(uuid)
                 .put({
@@ -282,11 +286,15 @@ export class GunDB {
 
     async sendDirectMessage(contact, message, ts) {
         if (this.isLoggedIn) {
+            // Generate secret using contact's public key and my private key
+            // Encrypt the contact, also save a copy of the message encrypted for ourselves.
             const secret = await this.sea.secret(contact.epub, this.gunUser._.sea);
             const enc = await this.sea.encrypt(message, secret);
             const senderEnc = await this.sea.encrypt(message, this.gunUser._.sea);
             const uuid = v4();
 
+            // Create a new message, add a reference to it on the 
+            // on the chat node
             const msgNode = this.gunUser.get('messages')
                 .get(uuid)
                 .put({
