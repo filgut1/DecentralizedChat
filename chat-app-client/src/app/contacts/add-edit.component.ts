@@ -55,5 +55,6 @@ export class AddEditComponent implements OnInit {
             this.alertService.error(err);
         }
         this.loading = false;
+        this.router.navigate(['/contacts']);
     }
 }

@@ -12,9 +12,9 @@
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
-  <form class="input-group">
+  <!-- <form class="input-group">
       <ion-searchbar></ion-searchbar>
-  </form>
+  </form> -->
   <ion-list *ngIf="asyncContacts | async as contacts">
     <ion-item-sliding *ngFor="let contact of contacts" (click)="openDirectChat(contact)">
         <ion-item-options side="start">

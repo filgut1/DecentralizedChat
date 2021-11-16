@@ -6,14 +6,9 @@
             <div class="col-xl-4 col-lg-4 col-md-4 col-sm-3 col-3">
                 <div class="users-container">
                     <div class="chat-search-box">
-                        <form class="input-group">
-                            <input type="text" class="form-control" placeholder="Search">
-                            <div class="input-group-btn">
-                                <button type="button">
-                                    <span class="fa fa-search"></span>
-                                </button>
-                            </div>
-                        </form>
+                        <button (click)="openChatJoinCreateDialog(content, 'create')" class="btn btn-outline-primary">Create</button>
+                        &nbsp;
+                        <button (click)="openChatJoinCreateDialog(content, 'join')" class="btn btn-outline-primary">Join</button>
                     </div>
                     <app-chats [(currentConvo)]="currentConvo" (currentConvoChange)="convoChange($event)"></app-chats>
                 </div>
@@ -25,3 +20,48 @@
         <!-- Row end -->
     </div>
 </div>
+
+<ng-template #content let-modal>
+    <div class="modal-header">
+        <h4 class="modal-title" id="modal-basic-title">{{title}}</h4>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss('Cross click')">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="alert alert-success" role="alert" *ngIf="successMessage && !errorMessage" type="success">
+            {{ successMessage }}
+        </div>
+        <div class="alert alert-danger" role="alert" *ngIf="errorMessage && !successMessage" type="success">
+            {{ errorMessage }}
+        </div>
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" #addEditForm="ngForm">
+            
+            <div class="form-row">
+                <div class="form-group col" *ngIf="form.contains('name')">
+                    <label for="name">Chat name</label>
+                    <input class="form-control" type="text" formControlName="name"/>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col" *ngIf="form.contains('uuid')">
+                    <label for="uuid">Chat invite link</label>
+                    <textarea class="form-control" formControlName="uuid"></textarea>
+                </div>
+            </div>
+        </form>
+        <section>
+            <ul *ngIf="contactCheckbox.length">
+                <h2>Select Chat Members</h2>
+                <li *ngFor="let contact of contactCheckbox">
+                    <mat-checkbox [(ngModel)]="contact.isChecked">
+                        {{contact.val.alias}}
+                    </mat-checkbox>
+                </li>
+            </ul>
+        </section>
+    </div>
+    <div class="modal-footer">
+        <button type="submit" class="btn btn-outline-dark" (click)="addEditForm.ngSubmit.emit()">Submit</button>
+    </div>
+</ng-template>

@@ -94,7 +94,7 @@ export class GunDB {
         });
     }
 
-    async createNewChat(members, chatName) {
+    async createNewChat(members, chatName): Promise<string> {
         return new Promise(async resolve => {
             const uuid = v4();
             const sharedKey = await this.sea.pair();
@@ -236,7 +236,7 @@ export class GunDB {
 
     myChatsObservable() {
         return new Observable(o => {
-            this.gunUser.get('chats').map().on(data => {
+            this.gunUser.get('chats').map(data => {
                 o.next(this.cleanup(data));
             });
             return () => {
@@ -267,15 +267,16 @@ export class GunDB {
             const enc = await this.sea.encrypt(message, sharedSecret);
             const uuid = v4();
 
-            const msgNode = this.gun
+            const msgNode = this.gunUser.get('messages')
                 .get(uuid)
                 .put({
                     from: this.myAlias,
                     ts,
                     uuid,
                     message: enc
+                }, ack => {
+                    this.gunUser.get('chats').get(conversation.uuid).get('messages').set(msgNode); 
                 });
-            this.gunUser.get('chats').get(conversation.uuid).get('messages').set(msgNode); 
         }
     }
 
@@ -286,7 +287,7 @@ export class GunDB {
             const senderEnc = await this.sea.encrypt(message, this.gunUser._.sea);
             const uuid = v4();
 
-            const msgNode = this.gun
+            const msgNode = this.gunUser.get('messages')
                 .get(uuid)
                 .put({
                     from: this.myAlias,
@@ -294,8 +295,9 @@ export class GunDB {
                     uuid,
                     message: enc,
                     senderEnc
+                }, ack => {
+                    this.gunUser.get('chats').get(contact.epub).get('messages').set(msgNode); 
                 });
-            this.gunUser.get('chats').get(contact.epub).get('messages').set(msgNode); 
         }
     }
 

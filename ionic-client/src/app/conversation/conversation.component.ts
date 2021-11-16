@@ -1,6 +1,6 @@
-import { Component, Input, OnInit, SimpleChanges, AfterViewChecked, ViewChild, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, SimpleChanges, AfterViewChecked, ViewChild, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { merge, Subject, Subscriber, Subscription  } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { delay, takeUntil } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { GunDB } from '@app/_services';
 import { Message, User } from '@app/_models';
@@ -10,30 +10,31 @@ import { IonContent } from '@ionic/angular'
 @Component({
   selector: 'app-conversation',
   templateUrl: './conversation.component.html',
-  styleUrls: ['./conversation.component.less']
+  styleUrls: ['./conversation.component.less'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ConversationComponent implements OnInit, OnDestroy {
   @ViewChild(IonContent, { static: false }) scrollBottom: IonContent;
   public loading: Boolean = false;
   public messageContent: String = '';
   public user: User;
-  public conversation = new Map<string, any>();
-  public asyncConvo$ = new Subject<any[]>();
+  public sortedMessages: Array<Message>;
   public messagesSubscription: Subscription;
   public messagesSubscriber: Subscriber<any>;
   private readonly destroy = new Subject();
-  private members: Array<any> = [];
   dmContact;
   @Input() currentConvo: any;
   constructor(
     private db: GunDB,
     private accountService: AccountService,
     private router: Router,
+    private cd: ChangeDetectorRef
   ) { 
     this.user = this.accountService.userValue;
   }
 
   async ngOnInit() {
+    const conversation = new Map<string, Message>();
     this.currentConvo = this.router.getCurrentNavigation().extras.state;
     if (this.currentConvo.type === 'group') {
       merge(
@@ -43,15 +44,15 @@ export class ConversationComponent implements OnInit, OnDestroy {
       .subscribe(async (messages: Array<Message>) => {
         for (const message of Object.values(messages)) {
           const res = await this.db.decryptMessage(this.currentConvo.uuid, message);
-          this.conversation.set(message.uuid, {
+          conversation.set(message.uuid, {
+            uuid: res.uuid,
             message: res.message,
             ts: res.ts,
             from: res.from
           });
         }
-        this.conversation = new Map([...this.conversation.entries()].sort((a, b) => a[1].ts - b[1].ts));
-        this.asyncConvo$.next([...this.conversation.values()]);
-        this.scrollToBottom();
+        this.sortedMessages = [...conversation.values()].sort((a, b) => a.ts - b.ts);           
+        this.cd.detectChanges();
       });
     } else {
       this.dmContact = this.currentConvo.members.filter(m => m.pub && m.pub !== this.user.pub)[0];
@@ -67,15 +68,15 @@ export class ConversationComponent implements OnInit, OnDestroy {
           } else {
             res = await this.db.decryptDirectMessage(this.dmContact.epub, message);
           }
-          this.conversation.set(message.uuid, {
+          conversation.set(message.uuid, {
+            uuid: res.uuid,
             message: res.message,
             ts: res.ts,
             from: res.from
           });
         }
-        this.conversation = new Map([...this.conversation.entries()].sort((a, b) => a[1].ts - b[1].ts));
-        this.asyncConvo$.next([...this.conversation.values()]);
-        this.scrollToBottom();
+        this.sortedMessages = [...conversation.values()].sort((a, b) => a.ts - b.ts);           
+        this.cd.detectChanges();
       });
     }
   }
@@ -84,21 +85,21 @@ export class ConversationComponent implements OnInit, OnDestroy {
     this.scrollToBottom();
   }
 
-  scrollToBottom(): void {
-        setTimeout(() => {
-      this.scrollBottom.scrollToBottom(300);
-   }, 1000);
+  scrollToBottom() {  
+    this.scrollBottom.scrollToBottom(300);
   }
 
   sendMessage() {
-    console.log(this.messageContent);
-    const ts = new Date().getTime();
-    if (this.currentConvo.type === 'group') {
-      this.db.sendGroupMessage(this.currentConvo, this.messageContent, ts);
-      this._clearChat();
-    } else {
-      this.db.sendDirectMessage(this.dmContact, this.messageContent, ts);
-      this._clearChat();
+    if (this.messageContent) {
+      console.log(this.messageContent);
+      const ts = new Date().getTime();
+      if (this.currentConvo.type === 'group') {
+        this.db.sendGroupMessage(this.currentConvo, this.messageContent, ts);
+        this._clearChat();
+      } else {
+        this.db.sendDirectMessage(this.dmContact, this.messageContent, ts);
+        this._clearChat();
+      }
     }
   }  
 
@@ -107,8 +108,8 @@ export class ConversationComponent implements OnInit, OnDestroy {
   }
 
   checkLastMessage(i) {
-    return i > 0 && this.conversation.size > 1 &&
-      [...this.conversation.values()][i - 1].from === [...this.conversation.values()][i].from;
+    return i > 0 && this.sortedMessages.length > 1 &&
+      this.sortedMessages[i - 1].from === this.sortedMessages[i].from;
   }
 
   trackByUuid(_index: number, item: any) {

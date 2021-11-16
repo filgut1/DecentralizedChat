@@ -8,10 +8,10 @@ import { AppComponent } from './app.component';
 import { AlertComponent } from './_components';
 import { HomeComponent } from './home';
 import { ChatsComponent } from './chats/chats.component';
-import { ConversationComponent } from './conversation/conversation.component';;
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
-;
-import { NgbModule } from '@ng-bootstrap/ng-bootstrap'
+import { ConversationComponent } from './conversation/conversation.component';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { MatCheckboxModule } from '@angular/material/checkbox'
 
 @NgModule({
     imports: [
@@ -20,7 +20,8 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap'
         FormsModule,
         AppRoutingModule,
         BrowserAnimationsModule,
-        NgbModule
+        NgbModule,
+        MatCheckboxModule
     ],
     declarations: [
         AppComponent,

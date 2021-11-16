@@ -26,6 +26,12 @@ export class ChatsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    if (this.currentConvo) {
+      this.cd.detectChanges();
+      setTimeout(() => {
+        this.currentConvoChange.emit(this.currentConvo);
+      }, 500);
+    }
     this.db.myChatsObservable()
     .pipe(takeUntil(this.destroy))
     .subscribe(chat => {

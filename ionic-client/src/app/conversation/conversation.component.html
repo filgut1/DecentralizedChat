@@ -7,8 +7,8 @@
     </ion-toolbar>
 </ion-header>
 <ion-content>
-    <ion-grid *ngIf="asyncConvo$ | async as asyncConvo">
-        <ion-row *ngFor="let message of asyncConvo; let i = index;  trackBy: trackByUuid" class="message" [ngClass]="{
+    <ion-grid>
+        <ion-row *ngFor="let message of sortedMessages; let i = index; let last = last;  trackBy: trackByUuid" class="message" [ngClass]="{
             'ion-align-self-start': isReceivedMessage(message), 
             'ion-align-self-end': !isReceivedMessage(message)}">
 
@@ -26,13 +26,14 @@
                 <span>{{ message.message }}</span>
                 <div class="time">{{message.ts | date:'shortTime'}}</div>
             </ion-col>
+            {{last ? scrollToBottom() : ''}}
         </ion-row>
     </ion-grid>
 </ion-content>
 <ion-footer>
     <ion-item no-lines>
         <ion-textarea type="text" placeholder="Message" name="messageContent" [(ngModel)]="messageContent"></ion-textarea>
-        <ion-button clear color="primary" (click)="sendMessage()" [disabled]="messageContent === ''">
+        <ion-button clear color="primary" (click)="sendMessage()">
             <ion-icon name="send"></ion-icon>
         </ion-button>
     </ion-item>

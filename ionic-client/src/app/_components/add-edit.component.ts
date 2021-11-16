@@ -1,7 +1,7 @@
 ﻿import { Component, Input, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { GunDB } from '@app/_services';
-import { ModalController } from '@ionic/angular';
+import { AlertController, ModalController } from '@ionic/angular';
 import { NavController } from '@ionic/angular';
 import { AlertService } from '@app/_services';
 import { Subject } from 'rxjs';
@@ -21,12 +21,11 @@ export class AddEditComponent implements OnInit {
     constructor(
         private formBuilder: FormBuilder,
         private db: GunDB,
-        public modalController: ModalController,
         private alertService: AlertService,
+        private alertController: AlertController,
+        public modalController: ModalController,
         public navCtrl: NavController
-    ) { 
-      
-     }
+    ) { }
 
     async ngOnInit() {
         switch (this.type) {
@@ -75,9 +74,13 @@ export class AddEditComponent implements OnInit {
             let members;
             switch(this.type) {
                 case 'create':
-                    members = this.contactCheckbox.map(c => c.isChecked ? c.val : undefined);
+                    members = this.contactCheckbox.filter(c => c.isChecked).map(c => c.val);
+                    if (!members.length) {
+                        throw new Error('Must select chat members');
+                    }
                     const chatUUID = await this.db.createNewChat(members, this.f.name.value);
                     this.f.uuid.setValue(chatUUID);
+                    // this.presentAlertConfirm(chatUUID);
                     this.alertService.success('Create chat success.');
                     break;
                 case 'join':
@@ -104,6 +107,30 @@ export class AddEditComponent implements OnInit {
             this.alertService.error(err);
         }
     }
+
+    async presentAlertConfirm(chatLink: string) {
+        const alert = await this.alertController.create({
+          cssClass: 'my-custom-class',
+          header: 'Confirm!',
+          message: `Chat Link: <strong>${chatLink}</strong>!!!`,
+          buttons: [
+            {
+              text: 'Cancel',
+              role: 'cancel',
+              cssClass: 'secondary',
+              handler: () => {
+                console.log('Confirm Cancel');
+              }
+            }, {
+              text: 'Okay',
+              handler: () => {
+                console.log('Confirm Okay');
+              }
+            }
+          ]
+        });
+        await alert.present();
+      }
  
     dismiss() {
         // using the injected ModalController this page

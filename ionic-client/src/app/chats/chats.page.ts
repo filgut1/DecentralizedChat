@@ -4,7 +4,6 @@ import { GunDB } from '@app/_services';
 import { NavController } from '@ionic/angular';
 import { ModalController } from '@ionic/angular';
 import { AddEditComponent } from '@app/_components/add-edit.component';
-import { JoinChatComponent } from '@app/join-chat/join-chat.component';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 

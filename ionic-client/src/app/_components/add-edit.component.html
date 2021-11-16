@@ -8,7 +8,7 @@
         <ion-row>
             <form [formGroup]="form" (ngSubmit)="onSubmit()" #addEditForm="ngForm">
                 <ion-item *ngIf="form.contains('alias')">
-                    <ion-label>Alias</ion-label>
+                <ion-label>Alias</ion-label>
                     <ion-input type="text" formControlName="alias"></ion-input>
                 </ion-item>
 
@@ -18,7 +18,8 @@
                 </ion-item>
 
                 <ion-item *ngIf="form.contains('uuid')">
-                    <ion-input type="text" formControlName="uuid"></ion-input>
+                    <ion-label>Chat invite link</ion-label>
+                    <ion-textarea formControlName="uuid"></ion-textarea>
                 </ion-item>
             </form>
         </ion-row>

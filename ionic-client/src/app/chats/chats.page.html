@@ -17,9 +17,9 @@
     <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
         <ion-refresher-content></ion-refresher-content>
     </ion-refresher>
-    <form class="input-group">
+    <!-- <form class="input-group">
         <ion-searchbar></ion-searchbar>
-    </form>
+    </form> -->
     <ion-list *ngIf="asyncChats | async as chatKeys">
         <ion-item-sliding *ngFor="let key of chatKeys" (click)="loadConvo(chats.get(key))">
             <ion-item-options side="start">

@@ -6,9 +6,6 @@ import { ConversationComponent } from '@app/conversation/conversation.component'
 import { AddEditComponent } from '@app/_components/add-edit.component';
 import { HomeRoutingModule } from './home-routing.module';
 import { IonicModule } from '@ionic/angular';
-import { JoinChatComponent } from '@app/join-chat/join-chat.component';
-
-
 
 @NgModule({
     imports: [
@@ -21,8 +18,7 @@ import { JoinChatComponent } from '@app/join-chat/join-chat.component';
     declarations: [
         HomeComponent,
         ConversationComponent,
-        AddEditComponent,
-        JoinChatComponent
+        AddEditComponent
     ]
 })
 export class HomeModule { }
