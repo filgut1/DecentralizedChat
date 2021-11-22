@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { User } from '@app/_models';
+import { Chat, User, ChatType, Message } from '@app/_models';
 import { v4 } from 'uuid';
-import * as Gun from 'gun/gun';
-import { resolve } from 'node:dns';
+const GUN = require('gun/gun');
 require('gun/lib/then.js');
 require('gun/sea');
 require('gun/lib/open.js');
@@ -15,9 +14,9 @@ export class GunDB {
     readonly gunUser:any;
     readonly sea:any;
     constructor() {
-        this.gun = Gun('http://localhost:3001/gun');
-        this.sea = Gun.SEA;
-        this.gunUser = this.gun.user();
+        this.gun = new GUN('https://decentralizedchat.herokuapp.com/gun');
+        this.sea = GUN.SEA;
+        this.gunUser = this.gun.user();         
         this.gunUser.recall({sessionStorage: true});
     }
 
@@ -29,7 +28,7 @@ export class GunDB {
     get myAlias() { return this.gunUser.is.alias; }
     get myPub() { return this.gunUser.is.pub; }
     get myProfile() { 
-        return this.gunUser.get('profile').then(this.cleanup);
+        return this.gunUser.is;
     }
 
     authenticate(username:String, password:String): Promise<any> {
@@ -38,7 +37,7 @@ export class GunDB {
                 if (ack.err && !this.gunUser.is) {
                     reject(ack.err);
                 } else {
-                    resolve(this.gunUser.is);
+                    resolve(this.gunUser.is);                   
                 }
             });
         });
@@ -108,13 +107,13 @@ export class GunDB {
                 encryptedSharedKey, ownerEncryptedSharedKey, ownerEncryptedSharedSecret
             });
 
-            const chat = {
+            const chat: Chat = {
                 uuid,
                 name: chatName,
                 ts: new Date().getTime(),
                 type: 'group'
-            }
-            const myProfile = await this.myProfile;
+            };
+            const myProfile = this.myProfile;
             const chatNode = this.gunUser.get('chats').get(uuid).put(chat);
             await Promise.all([
                 [...members, myProfile].map(c => this.addMemberToChat(c, chatNode))
@@ -125,17 +124,17 @@ export class GunDB {
         });
     }
 
-    async createDirectChat(contact) {
+    async createDirectChat(contact: User) {
         return new Promise(async resolve => {
             const uuid = v4();
-            const chat = {
+            const chat: Chat = {
                 uuid,
                 name: contact.alias,
                 ts: new Date().getTime(),
                 type: 'direct'
             }
 
-            const myProfile = await this.myProfile;
+            const myProfile = this.myProfile;
 
             const chatNode = this.gunUser.get('chats').get(contact.epub).put(chat);
             await Promise.all([
@@ -145,7 +144,7 @@ export class GunDB {
         });
     }
 
-    async joinExistingChat(uuid, pub, sharedSecret) {
+    async joinExistingChat(uuid: string, pub: string, sharedSecret: string) {
         return new Promise(async resolve => {
             const chat = await this.gun.user(pub).get('chats').get(uuid).then().then(this.cleanup);
             const ownerEncryptedSharedSecret = await this.sea.encrypt(sharedSecret, this.gunUser._.sea);
@@ -160,10 +159,10 @@ export class GunDB {
         });
     }
 
-    addMemberToChat(member, chatNode) {
+    addMemberToChat(member: User, chatNode: any) {
         return new Promise(resolve => {
-            const usr = this.gun.user(member.pub).get('profile');
-            chatNode.get('members').set(usr, ack => {
+            const profile = this.gun.user(member.pub).get('profile');
+            chatNode.get('members').set(profile, ack => {
                 resolve(ack);
             });
         });
@@ -173,33 +172,35 @@ export class GunDB {
         return this.gunUser.get('chats');
     }
 
-    getAllContacts(): Promise<any> {
+    getAllContacts(): Promise<Array<User>> {
         return this.gunUser.get('contacts')
             .then(this.cleanup)
             .then(refs => this.nodeData(refs));
     }
 
-    getUserConversations() {
+    getUserConversations(): Promise<Array<Chat>> {
         return this.gunUser.get('chats')
             .then(this.cleanup)
             .then(uuids => Promise.all(Object.keys(uuids).map(e => this.gunUser.get('chats').get(e)
             .then(this.cleanup))));
     }
 
-    getConversation(uuid) {
-        return this.gun.get(uuid).then(this.cleanup);
+    getConversation(uuid: string): Promise<Chat> {
+        return this.gunUser.get('chats').get(uuid).then(this.cleanup);
     }
 
-    getUserByAlias(alias) {
+    getUserByAlias(alias: string): Promise<Array<User>> {
         return this.gun.get(`~@${alias}`).then(this.cleanup).then(ref => this.nodeData(ref));
     }
 
-    getUserByPub(pub) {
+    getUserByPub(pub: string): Promise<User> {
         return this.gun.user(pub).get('profile').then(this.cleanup);
     }
 
-    getConvoMembers(ref) {
-        return this.gun.get(ref).then(refs => this.nodeData(refs));
+    getConvoMembers(membersNode: any): Promise<Array<User>> {
+        return this.gun.get(membersNode).then(refs => {
+            return this.nodeData(this.cleanup(refs))
+        });
     }
     
     userExists(alias): Promise<any> {
@@ -236,7 +237,7 @@ export class GunDB {
 
     myChatsObservable() {
         return new Observable(o => {
-            this.gunUser.get('chats').map(data => {
+            this.gunUser.get('chats').map().on(data => {
                 o.next(this.cleanup(data));
             });
             return () => {
@@ -245,18 +246,26 @@ export class GunDB {
         });
     }
 
-    messagesObservable(uuid, pub, opts = {}) {
+    getAllMessages(uuid, pub) {
+        if (uuid && pub) {
+            return this.gun.user(pub).get('chats').get(uuid).get('messages')
+                .then(this.cleanup)
+                .then(refs => this.nodeData(refs));
+        }
+    }
+
+    messagesObservable(uuid, pub) {
         return new Observable(o => {
-            this.gun.user(pub).get('chats').get(uuid).get('messages').open((data, key) => {
+            this.gun.user(pub).get('chats').get(uuid).get('messages').map().on((data, key) => {
                 o.next(data);
-            }, opts);
+            });
             return () => {
                 this.gun.user(pub).get('chats').get(uuid).get('messages').off();
             }
         });
     }
 
-    async sendGroupMessage(conversation, message, ts): Promise<void> {
+    async sendGroupMessage(conversation, message, ts): Promise<Message> {
         if (this.isLoggedIn) {
             // Reference to the chat link Node
             const chatLink = this.gunUser.get('chatLinks').get(conversation.uuid);
@@ -268,23 +277,24 @@ export class GunDB {
             // Encrypt the message with the shared secret
             const enc = await this.sea.encrypt(message, sharedSecret);
             const uuid = v4();
-
             // Create a new message, add a reference to it on
             // the chat node
+            const msg: Message = {
+                from: this.myAlias,
+                ts,
+                uuid,
+                message: enc
+            }
             const msgNode = this.gunUser.get('messages')
                 .get(uuid)
-                .put({
-                    from: this.myAlias,
-                    ts,
-                    uuid,
-                    message: enc
-                }, ack => {
+                .put(msg, ack => {
                     this.gunUser.get('chats').get(conversation.uuid).get('messages').set(msgNode); 
                 });
+            return msg;
         }
     }
 
-    async sendDirectMessage(contact, message, ts) {
+    async sendDirectMessage(contact, message, ts): Promise<Message> {
         if (this.isLoggedIn) {
             // Generate secret using contact's public key and my private key
             // Encrypt the contact, also save a copy of the message encrypted for ourselves.
@@ -295,23 +305,26 @@ export class GunDB {
 
             // Create a new message, add a reference to it on the 
             // on the chat node
+            const msg: Message = {
+                from: this.myAlias,
+                ts,
+                uuid,
+                message: enc,
+                senderEnc
+            }
             const msgNode = this.gunUser.get('messages')
                 .get(uuid)
-                .put({
-                    from: this.myAlias,
-                    ts,
-                    uuid,
-                    message: enc,
-                    senderEnc
-                }, ack => {
+                .put(msg, ack => {
                     this.gunUser.get('chats').get(contact.epub).get('messages').set(msgNode); 
                 });
+            return msg;
         }
     }
 
     async decryptMyOwnMessage(messageObj) {
-        messageObj.message = await this.sea.decrypt(messageObj.senderEnc, this.gunUser._.sea);
-        return messageObj;
+        const msgCpy = Object.assign({}, messageObj);
+        msgCpy.message = await this.sea.decrypt(messageObj.senderEnc, this.gunUser._.sea);
+        return msgCpy;
     }
 
     async decryptDirectMessage(epub, messageObj) {
@@ -382,7 +395,7 @@ export class GunDB {
     }
 
     private nodeData(refs) {
-        return Promise.all(Object.keys(refs).map(k => this.gun.get(k)
+        return refs && Promise.all(Object.keys(refs).map(k => this.gun.get(k)
             .then(this.cleanup)));
     }
 

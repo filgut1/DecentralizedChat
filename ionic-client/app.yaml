@@ -1,0 +1,72 @@
+runtime: python27
+api_version: 1
+threadsafe: true
+handlers:
+- url: /(.+\.js)
+  static_files: www/\1
+  upload: www/(.+\.js)
+  secure: always
+  redirect_http_response_code: 301
+
+- url: /(.+\.css)
+  static_files: www/\1
+  upload: www/(.+\.css)
+  secure: always
+  redirect_http_response_code: 301
+
+- url: /(.+\.png)
+  static_files: www/\1
+  upload: www/(.+\.png)
+  secure: always
+  redirect_http_response_code: 301
+
+- url: /(.+\.jpg)
+  static_files: www/\1
+  upload: www/(.+\.jpg)
+  secure: always
+  redirect_http_response_code: 301
+
+- url: /(.+\.gif)
+  static_files: www/\1
+  upload: www/(.+\.gif)
+  secure: always
+  redirect_http_response_code: 301
+
+- url: /(.+\.svg)
+  static_files: www/\1
+  upload: www/(.+\.svg)
+  secure: always
+  redirect_http_response_code: 301
+
+- url: /favicon.ico
+  static_files: www/favicon.ico
+  upload: www/favicon.ico
+  secure: always
+  redirect_http_response_code: 301
+
+- url: /(.+\.json)
+  static_files: www/\1
+  upload: www/(.+\.json)
+  secure: always
+  redirect_http_response_code: 301
+
+- url: /(.+)
+  static_files: www/index.html
+  upload: www/index.html
+  secure: always
+  redirect_http_response_code: 301
+
+- url: /
+  static_files: www/index.html
+  upload: www/index.html
+  secure: always
+  redirect_http_response_code: 301
+
+skip_files:
+  - e2e/
+  - node_modules/
+  - src/
+  - ^(.*/)?\..*$
+  - ^(.*/)?.*\.md$
+  - ^(.*/)?.*\.yaml$
+  - ^LICENSE

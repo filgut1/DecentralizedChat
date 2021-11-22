@@ -14,8 +14,9 @@ import { takeUntil } from 'rxjs/operators';
 export class ContactsPage implements OnInit, OnDestroy {
   public asyncContacts = new Subject<any>();
   public user: User;
+  public contacts = [];
   private readonly destroy = new Subject();
-  private contacts = new Map();
+  private contactsMap = new Map();
 
   constructor(
     private db: GunDB,
@@ -30,8 +31,8 @@ export class ContactsPage implements OnInit, OnDestroy {
     this.db.myContactsObservable()
     .pipe(takeUntil(this.destroy))
     .subscribe((contact: User) => {
-      this.contacts.set(contact.pub, contact);
-      this.asyncContacts.next([...this.contacts.values()]);
+      this.contactsMap.set(contact.pub, contact);
+      this.contacts = [...this.contactsMap.values()];
     });
   }
 
@@ -57,7 +58,7 @@ export class ContactsPage implements OnInit, OnDestroy {
 
   private async _loadContacts() {
     const contacts = await this.db.getAllContacts();
-    this.asyncContacts.next([...contacts]);
+    this.contacts = [...contacts];
   }
 
   async openDirectChat(contact) {
@@ -68,9 +69,6 @@ export class ContactsPage implements OnInit, OnDestroy {
       chat.members = [contact, this.user];
       this.navCtrl.navigateForward(['conversation'], {state: chat});
     } else {
-      if (!Array.isArray(directChat.members)) {
-        directChat.members = await this.db.getConvoMembers(directChat.members['#']);
-      } 
       this.navCtrl.navigateForward(['conversation'], {state: directChat});
     }
   }

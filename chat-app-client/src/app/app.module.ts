@@ -12,6 +12,8 @@ import { ConversationComponent } from './conversation/conversation.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { MatCheckboxModule } from '@angular/material/checkbox'
+import { LoginComponent } from './account/login.component';
+import { RegisterComponent } from './account/register.component';
 
 @NgModule({
     imports: [
@@ -29,6 +31,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox'
         HomeComponent,
         ChatsComponent ,
         ConversationComponent,   
+        LoginComponent,
+        RegisterComponent
     ],
     providers: [
         GunDB

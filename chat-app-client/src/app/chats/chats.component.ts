@@ -13,17 +13,15 @@ import { takeUntil } from 'rxjs/operators';
 export class ChatsComponent implements OnInit, OnDestroy {
   @Input() currentConvo: any;
   @Output() currentConvoChange = new EventEmitter<any>();
-  public chats: Map<any, any>;
   public searchString: String;
-  public asyncChats = new Subject<any>();
+  public chats = [];
+  private chatsMap = new Map();
   private readonly destroy = new Subject();
 
   constructor(
     private db: GunDB,
     private cd: ChangeDetectorRef,
-) { 
-    this.chats = new Map();
-  }
+) { }
 
   ngOnInit() {
     if (this.currentConvo) {
@@ -40,13 +38,9 @@ export class ChatsComponent implements OnInit, OnDestroy {
   }
 
   private async _updateChats(chat) {
-    if (chat.members && !Array.isArray(chat.members) && chat.members['#']) {
-      chat.members = await this.db.getConvoMembers(chat.members['#']);
-    } 
     if (chat.uuid) {
-      this.chats.set(chat.uuid, chat);
-      this.asyncChats.next(Array.from(this.chats.keys()));
-      this.cd.detectChanges();
+      this.chatsMap.set(chat.uuid, chat);
+      this.chats = [...this.chatsMap.values()];
     }
   }
 

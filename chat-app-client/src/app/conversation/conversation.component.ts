@@ -18,6 +18,7 @@ export class ConversationComponent implements OnDestroy, OnChanges, AfterViewChe
   public conversation = new Map<any, any>();
   public asyncConvo$ = new Subject<any[]>();
   public dmContact;
+  public sortedMessages: Array<Message>;
   private members: Array<any> = [];
   private messagesSubscription: Subscription;
   private readonly destroy = new Subject();
@@ -45,56 +46,48 @@ export class ConversationComponent implements OnDestroy, OnChanges, AfterViewChe
     if (this.messagesSubscription) {
       this.messagesSubscription.unsubscribe();
     }
-    this.conversation = new Map();
-    this.asyncConvo$.next([...this.conversation.values()]);
     if (changes.currentConvo.currentValue) {
-      if (this.currentConvo.type === 'group') {
-        this.messagesSubscription = merge(
-          ...this.currentConvo.members.map(m => 
-            this.db.messagesObservable(this.currentConvo.uuid, m.pub))
-        ).pipe(takeUntil(this.destroy))
-        .subscribe(async (messages: Array<Message>) => {
-          for (const message of Object.values(messages)) {
-            const res = await this.db.decryptMessage(this.currentConvo.uuid, message);
-            this.conversation.set(message.uuid, {
-              message: res.message,
-              ts: res.ts,
-              from: res.from
-            });
-          }
-          this.conversation = new Map([...this.conversation.entries()].sort((a, b) => a[1].ts - b[1].ts));
-          this.asyncConvo$.next([...this.conversation.values()]);
-          this.cd.detectChanges();
-          this.scrollToBottom();
-        });
-      } else {
-        this.dmContact = this.currentConvo.members.filter(m => m.pub && m.pub !== this.user.pub)[0];
-        this.messagesSubscription = merge(
-          this.db.messagesObservable(this.dmContact.epub, this.user.pub),
-          this.db.messagesObservable(this.user.epub, this.dmContact.pub)
-        ).pipe(takeUntil(this.destroy))
-        .subscribe(async (messages: Array<Message>) => {
-          for (const message of Object.values(messages)) {
-            let res;
-            if (message.from === this.user.alias) {
-              res = await this.db.decryptMyOwnMessage(message);
-            } else {
-              res = await this.db.decryptDirectMessage(this.dmContact.epub, message);
-            }
-            this.conversation.set(message.uuid, {
-              message: res.message,
-              ts: res.ts,
-              from: res.from
-            });
-          }
-          this.conversation = new Map([...this.conversation.entries()].sort((a, b) => a[1].ts - b[1].ts));
-          this.asyncConvo$.next([...this.conversation.values()]);
-          this.cd.detectChanges();
-          this.scrollToBottom();
-        });
-      }
+      this.currentConvo.members = await this.db.getConvoMembers(changes.currentConvo.currentValue.members);
+      this._setupSubscriptions();
     }
   }
+
+  private _setupSubscriptions() {
+    const conversation = new Map<string, Message>();
+    const handleMessage = async (message: Message) => {
+      let res;
+      if (message.message) {
+        if (this.currentConvo.type === 'group') {
+          res = await this.db.decryptMessage(this.currentConvo.uuid, message);
+        } else {
+          if (message.from === this.user.alias) {
+            res = await this.db.decryptMyOwnMessage(message);
+          } else {
+            res = await this.db.decryptDirectMessage(this.dmContact.epub, message);
+          }
+        } 
+        conversation.set(res.uuid, res);
+      }
+      this.sortedMessages = [...conversation.values()]
+        .sort((a, b) => a.ts - b.ts);
+      this.scrollToBottom();
+    };
+    if (this.currentConvo.type === 'group') {
+      this.messagesSubscription = merge(
+        ...this.currentConvo.members.map(m => 
+          this.db.messagesObservable(this.currentConvo.uuid, m.pub))
+      ).pipe(takeUntil(this.destroy))
+      .subscribe(handleMessage);
+    } else {
+      this.dmContact = this.currentConvo.members.filter(m => m.pub && m.pub !== this.user.pub)[0];
+      this.messagesSubscription = merge(
+        this.db.messagesObservable(this.dmContact.epub, this.user.pub),
+        this.db.messagesObservable(this.user.epub, this.dmContact.pub)
+      ).pipe(takeUntil(this.destroy))
+      .subscribe(handleMessage);
+    }
+  }
+ 
 
   sendMessage() {
     console.log(this.messageContent);
@@ -115,6 +108,10 @@ export class ConversationComponent implements OnDestroy, OnChanges, AfterViewChe
   checkLastMessage(i) {
     return i > 0 && this.conversation.size > 1 &&
       [...this.conversation.values()][i - 1].from === [...this.conversation.values()][i].from;
+  }
+
+  trackByUuid(_index: number, item: any) {
+    return item.uuid;
   }
 
   private _clearChat() {

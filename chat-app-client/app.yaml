@@ -1,0 +1,72 @@
+runtime: python27
+api_version: 1
+threadsafe: true
+handlers:
+- url: /(.+\.js)
+  static_files: decentralizedchat/\1
+  upload: decentralizedchat/(.+\.js)
+  secure: always
+  redirect_http_response_code: 301
+
+- url: /(.+\.css)
+  static_files: decentralizedchat/\1
+  upload: decentralizedchat/(.+\.css)
+  secure: always
+  redirect_http_response_code: 301
+
+- url: /(.+\.png)
+  static_files: decentralizedchat/\1
+  upload: decentralizedchat/(.+\.png)
+  secure: always
+  redirect_http_response_code: 301
+
+- url: /(.+\.jpg)
+  static_files: decentralizedchat/\1
+  upload: decentralizedchat/(.+\.jpg)
+  secure: always
+  redirect_http_response_code: 301
+
+- url: /(.+\.gif)
+  static_files: decentralizedchat/\1
+  upload: decentralizedchat/(.+\.gif)
+  secure: always
+  redirect_http_response_code: 301
+
+- url: /(.+\.svg)
+  static_files: decentralizedchat/\1
+  upload: decentralizedchat/(.+\.svg)
+  secure: always
+  redirect_http_response_code: 301
+
+- url: /favicon.ico
+  static_files: decentralizedchat/favicon.ico
+  upload: decentralizedchat/favicon.ico
+  secure: always
+  redirect_http_response_code: 301
+
+- url: /(.+\.json)
+  static_files: decentralizedchat/\1
+  upload: decentralizedchat/(.+\.json)
+  secure: always
+  redirect_http_response_code: 301
+
+- url: /(.+)
+  static_files: decentralizedchat/index.html
+  upload: decentralizedchat/index.html
+  secure: always
+  redirect_http_response_code: 301
+
+- url: /
+  static_files: decentralizedchat/index.html
+  upload: decentralizedchat/index.html
+  secure: always
+  redirect_http_response_code: 301
+
+skip_files:
+  - e2e/
+  - node_modules/
+  - src/
+  - ^(.*/)?\..*$
+  - ^(.*/)?.*\.md$
+  - ^(.*/)?.*\.yaml$
+  - ^LICENSE

@@ -8,20 +8,18 @@
         </tr>
     </thead>
     <tbody>
-        <ng-container *ngIf="!loading">
-            <tr *ngFor="let contact of contacts">
-                <td>{{contact.alias}}</td>
-                <td style="white-space: nowrap">
-                    <button (click)="openDirectChat(contact)" 
-                        class="btn btn-sm btn-primary mr-1"
-                    >Message</button>
-                </td>
-            </tr>
-            <tr *ngIf="!contacts">
-                <td colspan="4" class="text-center">
-                    <span class="spinner-border spinner-border-lg align-center"></span>
-                </td>
-            </tr>
-        </ng-container>
+        <tr *ngFor="let contact of contacts">
+            <td>{{contact.alias}}</td>
+            <td style="white-space: nowrap">
+                <button (click)="openDirectChat(contact)" 
+                    class="btn btn-sm btn-primary mr-1"
+                >Message</button>
+            </td>
+        </tr>
+        <tr *ngIf="!contacts">
+            <td colspan="4" class="text-center">
+                <span class="spinner-border spinner-border-lg align-center"></span>
+            </td>
+        </tr>
     </tbody>
 </table>

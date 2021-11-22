@@ -13,9 +13,9 @@ import { takeUntil } from 'rxjs/operators';
   templateUrl: './chats.page.html'
 })
 export class ChatsPage implements OnInit, OnDestroy  {
-  public chats: Map<any, any>;
   public searchString: String;
-  public asyncChats = new Subject<any>();
+  public chats = [];
+  private chatsMap = new Map();
   private readonly destroy = new Subject();
 
   constructor(
@@ -23,9 +23,7 @@ export class ChatsPage implements OnInit, OnDestroy  {
     private cd: ChangeDetectorRef,
     private navCtrl: NavController,
     public modalController: ModalController,
-  ) { 
-    this.chats = new Map();
-  }
+  ) { }
 
   ngOnInit() {
     this.db.myChatsObservable()
@@ -48,13 +46,9 @@ export class ChatsPage implements OnInit, OnDestroy  {
   }
 
   private async _updateChats(chat) {
-    if (chat.members && !Array.isArray(chat.members) && chat.members['#']) {
-      chat.members = await this.db.getConvoMembers(chat.members['#']);
-    } 
     if (chat.uuid) {
-      this.chats.set(chat.uuid, chat);
-      this.asyncChats.next(Array.from(this.chats.keys()));
-      this.cd.detectChanges();
+      this.chatsMap.set(chat.uuid, chat);
+      this.chats = [...this.chatsMap.values()];
     }
   }
 

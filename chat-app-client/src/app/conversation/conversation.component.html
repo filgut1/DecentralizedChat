@@ -3,21 +3,24 @@
 </div>
 <div class="chat-container">
     <ul class="chat-box chatContainerScroll" #scrollBottom>
-        <ng-container *ngIf="asyncConvo$ | async as asyncConvo">
-            <li *ngFor="let message of asyncConvo$   | async let i = index;  trackBy: trackByUuid" 
-                [ngClass]="{'chat-left': isReceivedMessage(message), 'chat-right': !isReceivedMessage(message), 'continued_message': checkLastMessage(i)}">
-                <div class="chat-text">
-                    <div *ngIf="!checkLastMessage(i) && isReceivedMessage(message)" class="chat-name">{{ message.from }}</div>
-                    {{message.message}}
-                    <div class="chat-hour">{{message.ts | date:'shortTime'}}<span class="fa fa-check-circle"></span></div>
-                </div>
-            </li>
-        </ng-container>
+        <li *ngFor="let message of sortedMessages; let i = index;  trackBy: trackByUuid" 
+            [ngClass]="{'chat-left': isReceivedMessage(message), 'chat-right': !isReceivedMessage(message), 'continued_message': checkLastMessage(i)}">
+            <div class="chat-text">
+                <div *ngIf="!checkLastMessage(i) && isReceivedMessage(message)" class="chat-name">{{ message.from }}</div>
+                {{message.message}}
+                <div class="chat-hour">{{message.ts | date:'shortTime'}}<span class="fa fa-check-circle"></span></div>
+            </div>
+        </li>
     </ul>
     <form class="form-group mt-3 mb-0"
         (ngSubmit)="sendMessage()">
-        <input type="text" [(ngModel)]="messageContent" name="messageContent"
-            class="form-control" placeholder="Type your message here...">
-        <button type="submit">Send</button>
+        <div class="input-group">
+            <textarea type="text" [(ngModel)]="messageContent" name="messageContent"
+                class="form-control" (keyup.enter)="sendMessage()">
+            </textarea>
+            <div class="input-group-append">
+                <button class="btn btn-outline-primary" type="submit">Send</button>
+            </div>
+        </div>
     </form>
 </div>

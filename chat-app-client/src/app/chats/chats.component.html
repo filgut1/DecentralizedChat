@@ -5,16 +5,14 @@
 -->
 
 <ul class="users">
-    <ng-container *ngIf="asyncChats | async as chatKeys">
-        <li *ngFor="let key of chatKeys" (click)="loadConvo(chats.get(key))"
-            class="person" [ngClass]="{'active-user': currentConvo && currentConvo.uuid === chats.get(key).uuid}">
-            <div class="user">
-                <img src="https://cdn2.iconfinder.com/data/icons/rcons-user/32/male-shadow-circle-512.png">
-            </div>
-            <p class="name-time">
-                <span class="name">{{ chats.get(key).name }}</span>
-                <span class="time">15/02/2019</span>
-            </p>
-        </li>
-    </ng-container>
+    <li *ngFor="let chat of chats" (click)="loadConvo(chat)"
+        class="person" [ngClass]="{'active-user': currentConvo && currentConvo.uuid === chat.uuid}">
+        <div class="user">
+            <img src="https://cdn2.iconfinder.com/data/icons/rcons-user/32/male-shadow-circle-512.png">
+        </div>
+        <p class="name-time">
+            <span class="name">{{ chat.name }}</span>
+            <!-- <span class="time">15/02/2019</span> -->
+        </p>
+    </li>
 </ul>

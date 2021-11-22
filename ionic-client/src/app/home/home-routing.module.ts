@@ -6,7 +6,7 @@ import { HomeComponent } from './home.component';
 
 const routes: Routes = [
   { 
-    path: '', 
+    path: 'tabs', 
     component: HomeComponent,
     children: [
       {
@@ -22,7 +22,12 @@ const routes: Routes = [
     ],
     canActivate: [AuthGuard] 
   },
-  { path: 'conversation', component: ConversationComponent, canActivate: [AuthGuard] }
+  { path: 'conversation', component: ConversationComponent, canActivate: [AuthGuard] },
+  {
+    path: '',
+    redirectTo: '/tabs/chats',
+    pathMatch: 'full'
+  }
 ];
 
 @NgModule({
