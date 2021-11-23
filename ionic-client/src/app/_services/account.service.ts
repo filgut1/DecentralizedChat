@@ -25,7 +25,7 @@ export class AccountService {
         return this.gunDB.authenticate(username, password)
             .then((user:User) => {
                 this.userSubject.next(user);
-                return user; 
+                return user;
             });
     }
 
@@ -38,6 +38,10 @@ export class AccountService {
     }
 
     register(user: User) {
-        return this.gunDB.createUser(user);
+        return this.gunDB.createUser(user)
+            .then((user: User) => {
+                this.userSubject.next(user);
+                return user;
+            });
     }
 }

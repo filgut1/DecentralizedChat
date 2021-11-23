@@ -27,13 +27,13 @@ export class ConversationComponent implements OnDestroy, OnChanges, AfterViewChe
     private db: GunDB,
     private accountService: AccountService,
     private cd: ChangeDetectorRef
-  ) { 
+  ) {
     this.user = this.accountService.userValue;
   }
 
-  ngAfterViewChecked() {        
-    this.scrollToBottom();        
-  } 
+  ngAfterViewChecked() {
+    this.scrollToBottom();
+  }
 
   scrollToBottom(): void {
     try {
@@ -47,13 +47,16 @@ export class ConversationComponent implements OnDestroy, OnChanges, AfterViewChe
       this.messagesSubscription.unsubscribe();
     }
     if (changes.currentConvo.currentValue) {
-      this.currentConvo.members = await this.db.getConvoMembers(changes.currentConvo.currentValue.members);
-      this._setupSubscriptions();
+      if (this.currentConvo.members['#']) {
+        this.currentConvo.members = await this.db.getConvoMembers(this.currentConvo.members);
+        this._setupSubscriptions();
+      }
     }
   }
 
   private _setupSubscriptions() {
     const conversation = new Map<string, Message>();
+    this.sortedMessages = [];
     const handleMessage = async (message: Message) => {
       let res;
       if (message.message) {
@@ -65,7 +68,7 @@ export class ConversationComponent implements OnDestroy, OnChanges, AfterViewChe
           } else {
             res = await this.db.decryptDirectMessage(this.dmContact.epub, message);
           }
-        } 
+        }
         conversation.set(res.uuid, res);
       }
       this.sortedMessages = [...conversation.values()]
@@ -74,7 +77,7 @@ export class ConversationComponent implements OnDestroy, OnChanges, AfterViewChe
     };
     if (this.currentConvo.type === 'group') {
       this.messagesSubscription = merge(
-        ...this.currentConvo.members.map(m => 
+        ...this.currentConvo.members.map(m =>
           this.db.messagesObservable(this.currentConvo.uuid, m.pub))
       ).pipe(takeUntil(this.destroy))
       .subscribe(handleMessage);
@@ -87,7 +90,7 @@ export class ConversationComponent implements OnDestroy, OnChanges, AfterViewChe
       .subscribe(handleMessage);
     }
   }
- 
+
 
   sendMessage() {
     console.log(this.messageContent);

@@ -14,7 +14,7 @@ export class GunDB {
     readonly gunUser:any;
     readonly sea:any;
     constructor() {
-        this.gun = GUN('https://decentralizedchat.herokuapp.com/gun');
+        this.gun = new GUN('https://decentralizedchat.herokuapp.com/gun');
         this.sea = GUN.SEA;
         this.gunUser = this.gun.user();
         this.gunUser.recall({sessionStorage: true});
@@ -27,13 +27,13 @@ export class GunDB {
     get myEpub() { return this.gunUser.is.epub; }
     get myAlias() { return this.gunUser.is.alias; }
     get myPub() { return this.gunUser.is.pub; }
-    get myProfile() { 
+    get myProfile() {
         return this.gunUser.is;
     }
 
     authenticate(username:String, password:String): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.gunUser.auth(username, password, ack => {                
+            this.gunUser.auth(username, password, ack => {
                 if (ack.err && !this.gunUser.is) {
                     reject(ack.err);
                 } else {
@@ -70,14 +70,14 @@ export class GunDB {
         return new Promise(async resolve => {
             if (this.isLoggedIn) {
                 const contact = await this.getUserByAlias(alias);
-                if (contact.length) {
-                    const contactProfile = this.gun.user(contact[0].pub).get('profile');
+                if (contact && contact.profile) {
+                    const contactProfile = this.gun.user(contact.pub).get('profile');
                     this.gunUser.get('contacts').set(contactProfile, async ack => {
                         const profile = await contactProfile.then().then(this.cleanup)
                         resolve(profile);
                     });
                 }
-            }        
+            }
         });
     }
 
@@ -89,7 +89,7 @@ export class GunDB {
                     const profile = await contactProfile.then().then(this.cleanup)
                     resolve(profile);
                 });
-            }        
+            }
         });
     }
 
@@ -112,7 +112,7 @@ export class GunDB {
                 name: chatName,
                 ts: new Date().getTime(),
                 type: 'group'
-            }
+            };
             const myProfile = this.myProfile;
             const chatNode = this.gunUser.get('chats').get(uuid).put(chat);
             await Promise.all([
@@ -148,11 +148,11 @@ export class GunDB {
         return new Promise(async resolve => {
             const chat = await this.gun.user(pub).get('chats').get(uuid).then().then(this.cleanup);
             const ownerEncryptedSharedSecret = await this.sea.encrypt(sharedSecret, this.gunUser._.sea);
-    
+
             this.gunUser.get('chatLinks').get(uuid).put({
                 ownerEncryptedSharedSecret
             });
-    
+
             this.gunUser.get('chats').get(uuid).put(chat, ack => {
                 resolve(true);
             });
@@ -174,7 +174,8 @@ export class GunDB {
 
     getAllContacts(): Promise<Array<User>> {
         return this.gunUser.get('contacts')
-            .then(this.cleanup);
+            .then(this.cleanup)
+            .then(refs => this.nodeData(refs));
     }
 
     getUserConversations(): Promise<Array<Chat>> {
@@ -188,8 +189,10 @@ export class GunDB {
         return this.gunUser.get('chats').get(uuid).then(this.cleanup);
     }
 
-    getUserByAlias(alias: string): Promise<Array<User>> {
-        return this.gun.get(`~@${alias}`).then(this.cleanup).then(ref => this.nodeData(ref));
+    getUserByAlias(alias: string): Promise<User> {
+        return this.gun.get(`~@${alias}`)
+            .then(this.cleanup)
+            .then(ref => ref && this.gun.get(Object.keys(ref)[0]).then(this.cleanup));
     }
 
     getUserByPub(pub: string): Promise<User> {
@@ -197,11 +200,11 @@ export class GunDB {
     }
 
     getConvoMembers(membersNode: any): Promise<Array<User>> {
-        return this.gun.get(membersNode).then(refs => {
+        return this.gun.get(membersNode).then(this.cleanup).then(refs => {
             return this.nodeData(this.cleanup(refs))
         });
     }
-    
+
     userExists(alias): Promise<any> {
         if (this.isLoggedIn) {
             return new Promise(async(resolve, reject) => {
@@ -243,6 +246,14 @@ export class GunDB {
                 this.gunUser.get('chats').off();
             }
         });
+    }
+
+    getAllMessages(uuid, pub) {
+        if (uuid && pub) {
+            return this.gun.user(pub).get('chats').get(uuid).get('messages')
+                .then(this.cleanup)
+                .then(refs => this.nodeData(refs));
+        }
     }
 
     messagesObservable(uuid, pub) {
@@ -294,7 +305,7 @@ export class GunDB {
             const senderEnc = await this.sea.encrypt(message, this.gunUser._.sea);
             const uuid = v4();
 
-            // Create a new message, add a reference to it on the 
+            // Create a new message, add a reference to it on the
             // on the chat node
             const msg: Message = {
                 from: this.myAlias,
@@ -306,7 +317,7 @@ export class GunDB {
             const msgNode = this.gunUser.get('messages')
                 .get(uuid)
                 .put(msg, ack => {
-                    this.gunUser.get('chats').get(contact.epub).get('messages').set(msgNode); 
+                    this.gunUser.get('chats').get(contact.epub).get('messages').set(msgNode);
                 });
             return msg;
         }

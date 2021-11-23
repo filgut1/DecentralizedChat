@@ -102,7 +102,6 @@ export class AddEditComponent implements OnInit {
                     this.dismiss();
                     break;
             }
-            
         } catch(err) {
             this.alertService.error(err);
         }

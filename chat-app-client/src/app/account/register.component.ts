@@ -43,7 +43,7 @@ export class RegisterComponent implements OnInit {
         this.loading = true;
         this.accountService.register(this.form.value).then(() => {
             this.alertService.success('Registration successful', { keepAfterRouteChange: true });
-            this.router.navigate(['../login'], { relativeTo: this.route });
+            this.router.navigate(['/'], { relativeTo: this.route });
         }).catch(err => {
             this.alertService.error(err);
             this.loading = false;

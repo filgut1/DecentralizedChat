@@ -5,6 +5,7 @@ export interface User {
     pub: string;
     alias: string;
     password?: string;
+    profile?: any
 }
 
 export interface UserProfile {
@@ -13,7 +14,7 @@ export interface UserProfile {
     alias: string;
 }
 
-export type ChatType = 
+export type ChatType =
     | 'group'
     | 'direct';
 

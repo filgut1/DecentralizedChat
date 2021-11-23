@@ -41,6 +41,10 @@ export class AccountService {
     }
 
     register(user: User) {
-        return this.gunDB.createUser(user);
+        return this.gunDB.createUser(user)
+            .then((user: User) => {
+                this.userSubject.next(user);
+                return user;
+            });
     }
 }

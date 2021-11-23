@@ -28,14 +28,14 @@ export class HomeComponent {
     constructor(
         private accountService: AccountService,
         private formBuilder: FormBuilder,
-        private db: GunDB, 
+        private db: GunDB,
         private router: Router,
         private cd: ChangeDetectorRef,
         private modalService: NgbModal,
         private alertService: AlertService,
     ) {
         this.user = this.accountService.userValue;
-        this.currentConvo = this.router.getCurrentNavigation() && 
+        this.currentConvo = this.router.getCurrentNavigation() &&
             this.router.getCurrentNavigation().extras.state;
     }
 
@@ -64,11 +64,11 @@ export class HomeComponent {
                 });
                 break;
         }
-        
+
         this.modalRef = this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'});
 
         this.modalRef.result.then(async result => {
-          
+
           }, (reason) => {
             this.closeResult = `Dismissed ${this.getDismissReason(reason)}`;
           });
@@ -120,10 +120,4 @@ export class HomeComponent {
           return `with: ${reason}`;
         }
       }
-
-    convoChange(convo) {
-        this.currentConvo = {...convo};
-        this.cd.detectChanges();
-    }
-
 }

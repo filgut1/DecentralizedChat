@@ -36,7 +36,9 @@ export class ConversationComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.currentConvo = this.router.getCurrentNavigation().extras.state;
-    this.currentConvo.members = await this.db.getConvoMembers(this.currentConvo.members);
+    if (this.currentConvo.members['#']) {
+      this.currentConvo.members = await this.db.getConvoMembers(this.currentConvo.members);
+    }
     this._setupSubscriptions();
   }
 
@@ -53,7 +55,7 @@ export class ConversationComponent implements OnInit, OnDestroy {
           } else {
             res = await this.db.decryptDirectMessage(this.dmContact.epub, message);
           }
-        } 
+        }
         conversation.set(res.uuid, res);
       }
       this.sortedMessages = [...conversation.values()]
@@ -62,7 +64,7 @@ export class ConversationComponent implements OnInit, OnDestroy {
     };
     if (this.currentConvo.type === 'group') {
       merge(
-        ...this.currentConvo.members.map(m => 
+        ...this.currentConvo.members.map(m =>
           this.db.messagesObservable(this.currentConvo.uuid, m.pub))
       ).pipe(takeUntil(this.destroy))
       .subscribe(handleMessage);
@@ -75,7 +77,7 @@ export class ConversationComponent implements OnInit, OnDestroy {
       .subscribe(handleMessage);
     }
   }
- 
+
   ionViewDidEnter(){
     this.scrollToBottom();
   }

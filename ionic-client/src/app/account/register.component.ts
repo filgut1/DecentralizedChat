@@ -40,7 +40,7 @@ export class RegisterComponent implements OnInit {
         this.loading = true;
         this.accountService.register(this.form.value).then(() => {
             this.alertService.success('Registration successful', { keepAfterRouteChange: true });
-            this.navCtrl.navigateRoot(['/login']);
+            this.navCtrl.navigateRoot(['/']);
         }).catch(err => {
             this.alertService.error(err);
             this.loading = false;
