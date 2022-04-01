@@ -28,7 +28,7 @@ export class AccountService {
         return this.gunDB.authenticate(username, password)
             .then((user:User) => {
                 this.userSubject.next(user);
-                return user; 
+                return user;
             });
     }
 

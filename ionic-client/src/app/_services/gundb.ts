@@ -14,7 +14,8 @@ export class GunDB {
     readonly gunUser:any;
     readonly sea:any;
     constructor() {
-        this.gun = new GUN('https://decentralizedchat.herokuapp.com/gun');
+        this.gun = new GUN('http://localhost:3001/gun');
+        // this.gun = new GUN('https://decentralizedchat.herokuapp.com/gun');
         this.sea = GUN.SEA;
         this.gunUser = this.gun.user();
         this.gunUser.recall({sessionStorage: true});
@@ -290,7 +291,7 @@ export class GunDB {
             const msgNode = this.gunUser.get('messages')
                 .get(uuid)
                 .put(msg, ack => {
-                    this.gunUser.get('chats').get(conversation.uuid).get('messages').set(msgNode); 
+                    this.gunUser.get('chats').get(conversation.uuid).get('messages').set(msgNode);
                 });
             return msg;
         }
@@ -299,13 +300,13 @@ export class GunDB {
     async sendDirectMessage(contact, message, ts): Promise<Message> {
         if (this.isLoggedIn) {
             // Generate secret using contact's public key and my private key
-            // Encrypt the contact, also save a copy of the message encrypted for ourselves.
+            // Encrypt the message, also save a copy of the message encrypted for ourselves.
             const secret = await this.sea.secret(contact.epub, this.gunUser._.sea);
             const enc = await this.sea.encrypt(message, secret);
             const senderEnc = await this.sea.encrypt(message, this.gunUser._.sea);
             const uuid = v4();
 
-            // Create a new message, add a reference to it on the 
+            // Create a new message, add a reference to it on the
             // on the chat node
             const msg: Message = {
                 from: this.myAlias,
@@ -317,7 +318,7 @@ export class GunDB {
             const msgNode = this.gunUser.get('messages')
                 .get(uuid)
                 .put(msg, ack => {
-                    this.gunUser.get('chats').get(contact.epub).get('messages').set(msgNode); 
+                    this.gunUser.get('chats').get(contact.epub).get('messages').set(msgNode);
                 });
             return msg;
         }

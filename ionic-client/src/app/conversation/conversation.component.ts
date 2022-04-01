@@ -30,7 +30,7 @@ export class ConversationComponent implements OnInit, OnDestroy {
     private cd: ChangeDetectorRef,
     private ngZone: NgZone,
     private appRef: ApplicationRef
-  ) { 
+  ) {
     this.user = this.accountService.userValue;
   }
 
@@ -82,9 +82,10 @@ export class ConversationComponent implements OnInit, OnDestroy {
     this.scrollToBottom();
   }
 
-  scrollToBottom() {  
+  scrollToBottom() {
     setTimeout(() => {
       this.scrollBottom.scrollToBottom(300);
+      this.cd.detectChanges();
     }, 500)
   }
 

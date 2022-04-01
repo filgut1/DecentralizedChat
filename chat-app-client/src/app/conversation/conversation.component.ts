@@ -38,6 +38,7 @@ export class ConversationComponent implements OnDestroy, OnChanges, AfterViewChe
   scrollToBottom(): void {
     try {
       this.scrollBottom.nativeElement.scrollTop = this.scrollBottom.nativeElement.scrollHeight;
+      this.cd.detectChanges();
     } catch(err) { }
   }
 
@@ -49,8 +50,8 @@ export class ConversationComponent implements OnDestroy, OnChanges, AfterViewChe
     if (changes.currentConvo.currentValue) {
       if (this.currentConvo.members['#']) {
         this.currentConvo.members = await this.db.getConvoMembers(this.currentConvo.members);
-        this._setupSubscriptions();
       }
+      this._setupSubscriptions();
     }
   }
 
